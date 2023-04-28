@@ -13,7 +13,7 @@
 
 
 
-<title>Mingeer</title>
+<title>node ipam controller allocate pod cidr | Mingeer</title>
 
 
 
@@ -196,7 +196,7 @@
     
     <article class="post-wrap">
         <header class="post-header">
-            <h1 class="post-title"></h1>
+            <h1 class="post-title">node ipam controller allocate pod cidr</h1>
             
                 <div class="post-meta">
                     
@@ -205,17 +205,23 @@
 
                     
                         <span class="post-time">
-                        Date: <a href="#">April 27, 2023&nbsp;&nbsp;21:40:17</a>
+                        Date: <a href="#">April 22, 2023&nbsp;&nbsp;0:00:00</a>
                         </span>
                     
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/kubernetes/">kubernetes</a>
+                            
+                        </span>
                     
                 </div>
             
         </header>
 
         <div class="post-content">
-            <p>[toc]</p>
-<h1 id="node-ipam-实现原理"><a href="#node-ipam-实现原理" class="headerlink" title="node ipam 实现原理"></a>node ipam 实现原理</h1><h2 id="node对象"><a href="#node对象" class="headerlink" title="node对象"></a>node对象</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">kubectl get node master1 -o yaml</span><br><span class="line">...</span><br><span class="line">spec:</span><br><span class="line">  configSource:</span><br><span class="line">    configMap:</span><br><span class="line">      kubeletConfigKey: kubelet</span><br><span class="line">      name: master1-kubelet-config</span><br><span class="line">      namespace: kube-system</span><br><span class="line">  podCIDR: 10.10.50.0/24</span><br><span class="line">  podCIDRs:</span><br><span class="line">  - 10.10.50.0/24</span><br></pre></td></tr></table></figure>
+            <h1 id="node-ipam-controller-node-podcidr"><a href="#node-ipam-controller-node-podcidr" class="headerlink" title="node-ipam-controller-node-podcidr"></a>node-ipam-controller-node-podcidr</h1><h2 id="node对象"><a href="#node对象" class="headerlink" title="node对象"></a>node对象</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">kubectl get node master1 -o yaml</span><br><span class="line">...</span><br><span class="line">spec:</span><br><span class="line">  configSource:</span><br><span class="line">    configMap:</span><br><span class="line">      kubeletConfigKey: kubelet</span><br><span class="line">      name: master1-kubelet-config</span><br><span class="line">      namespace: kube-system</span><br><span class="line">  podCIDR: 10.10.50.0/24</span><br><span class="line">  podCIDRs:</span><br><span class="line">  - 10.10.50.0/24</span><br></pre></td></tr></table></figure>
 <p>node对象中的<code>podcidr</code>属性，其作用是当前节点的<code>cni plugin</code>会获取该参数，从而为pod分配具体的ip地址</p>
 <p><code>kube-controller-manager</code>中与node相关的两个：<code>node-ipam-controller</code>和<code>node-lifecycle-controller</code></p>
 <h2 id="node-ipam-控制器参数"><a href="#node-ipam-控制器参数" class="headerlink" title="node ipam 控制器参数"></a>node ipam 控制器参数</h2><p><code>node ipam controller</code>参数是从<code>controller-manager</code>的启动参数中传入</p>
@@ -284,6 +290,10 @@
                 <span>Tag(s):</span>
                 <span class="tag">
                     
+                    
+                        <a href="/tags/dns/"># dns</a>
+                    
+                        
                 </span>
             </div>
             <div>
@@ -294,8 +304,10 @@
         </section>
         <section class="post-nav">
             
+                <a class="prev" rel="prev" href="/2023/04/25/pod%E4%B8%AD%E7%9A%84%E9%BB%98%E8%AE%A4%E8%B7%AF%E7%94%B1/">pod中的默认路由</a>
             
-            <a class="next" rel="next" href="/2023/04/25/pod%E4%B8%AD%E7%9A%84%E9%BB%98%E8%AE%A4%E8%B7%AF%E7%94%B1/">pod中的默认路由</a>
+            
+            <a class="next" rel="next" href="/2023/04/22/kubelet-dns-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">kubelet dns 源码分析</a>
             
         </section>
 
