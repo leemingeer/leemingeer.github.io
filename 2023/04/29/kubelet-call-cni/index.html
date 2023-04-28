@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Mingeer">
+
+
+
+
+
+<title>kubelet call cni | Mingeer</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Mingeer&#39;s Space</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Mingeer&#39;s Space</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">kubelet call cni</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Mingeer</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">April 29, 2023&nbsp;&nbsp;0:50:39</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/kubernetes/">kubernetes</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p><img src="kubelet-call-cni.png" alt="img.png"></p>
+<h1 id="kubelet-call-cni"><a href="#kubelet-call-cni" class="headerlink" title="kubelet call cni"></a>kubelet call cni</h1><h2 id="kubelet-run"><a href="#kubelet-run" class="headerlink" title="kubelet.run"></a>kubelet.run</h2><p>启动kubelet的各个Manager，</p>
+<p>注意syncLoop()这个pod状态同步是个<code>for&#123;&#125;</code>形的死循环。</p>
+<p>因为需要将依赖的各个控制器先启动起来，才能进行pod的<code>syncLoop()</code>控制。所以<code>syncLoop()</code>是在最后启动</p>
+<p>相关代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">go kl.cloudResourceSyncManager.Run(wait.NeverStop)</span><br><span class="line">kl.initializeModules()</span><br><span class="line">go kl.volumeManager.Run(kl.sourcesReady, wait.NeverStop)</span><br><span class="line"></span><br><span class="line">下面这三个的启动条件是kubeClient!=nil， 因为涉及到与kube-apiserver的通信，上报节点状态，node not ready是这里设置的</span><br><span class="line">go wait.Until(kl.syncNodeStatus, kl.nodeStatusUpdateFrequency, wait.NeverStop)</span><br><span class="line">go kl.fastStatusUpdateOnce()</span><br><span class="line">// start syncing lease</span><br><span class="line">go kl.nodeLeaseController.Run(wait.NeverStop)</span><br><span class="line"></span><br><span class="line">// 调用运行时状态handler,containerRuntime.Status(), 运行时的状态包括两部分， runtime is up(可以创建容器) +  runtime network is up（可以为容器配置网络）， 写入到runtimeState属性中</span><br><span class="line">go wait.Until(kl.updateRuntimeUp, 5*time.Second, wait.NeverStop)</span><br><span class="line">    =&gt; initializeRuntimeDependentModules 当运行时正常，则初始化运行时所需要的模块（单例模式，值得学习），</span><br><span class="line">        这里包括cadvisor, StatsProvider,containerManager,evictionManager,pluginManager(csi and device plugin), 运行时好了，就可以创建pod、containers及volume, device， stats等信息。</span><br><span class="line">kl.initNetworkUtil()</span><br><span class="line">// watch channel, 写入端时在syncloop收到删除pod事件</span><br><span class="line">go wait.Until(kl.podKiller, 1*time.Second, wait.NeverStop)</span><br><span class="line"></span><br><span class="line">// Start component sync loops.</span><br><span class="line">kl.statusManager.Start()</span><br><span class="line">kl.probeManager.Start()</span><br><span class="line">kl.runtimeClassManager.Start(wait.NeverStop)</span><br><span class="line"></span><br><span class="line">// Start the pod lifecycle event generator.</span><br><span class="line">kl.pleg.Start()</span><br><span class="line"></span><br><span class="line">最后才是启动pod的synchronization状态同步</span><br><span class="line">kl.syncLoop(updates, kl)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="syncLoop-调度核心"><a href="#syncLoop-调度核心" class="headerlink" title="syncLoop 调度核心"></a>syncLoop 调度核心</h2><p>主体逻辑是在for循环中的syncLoopIteration，它有5个参数</p>
+<ul>
+<li>updates: 改动即updates，所以也叫config channel，watches for changes from three channels (file, apiserver, and http)。<ul>
+<li>file对static pod的改动</li>
+<li>apiserver是apply新的改动或者kubectl edit xxx</li>
+<li>http更新，不依赖etcd或者apiserver来创建pod<ul>
+<li>在Kubernetes集群之外管理Pod: 如果需要从非Kubernetes系统（如自定义工具或其他云平台）管理Pod，则可以使用HTTP方式来提交Pod定义。这样做不需要直接与Kubernetes API服务器交互，也不需要在节点上部署额外的组件。</li>
+<li>动态生成Pod定义, 不用生成yaml或者json的file再apply这样了，直接内存数据发请求就可以。</li>
+<li>应对临时性存储后端：某些存储后端（如etcd）可以将Pod定义作为HTTP响应提供。在这种情况下，使用HTTP可以使kubelet无需连接到etcd实例，而是可以直接从HTTP端点获取Pod定义。这种方法还允许更容易地切换到另一个存储后端，因为只需要简单地更改HTTP端点的URL地址即可</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>handler:就是kubelet本身，调用kubelet的方法来处理事件。</li>
+<li>syncTicker<ul>
+<li>周期任务，1s,</li>
+<li>保证pod的asw始终是dsw</li>
+</ul>
+</li>
+<li>housekeepingTicker，<ul>
+<li>周期任务，2s</li>
+<li>为pod打扫卫生，pod依赖的资源需要清理，比如volume</li>
+</ul>
+</li>
+<li>plegCh<ul>
+<li>pod生命周期(创建、启动、停止、删除等)产生事件，事件驱动流程，这非常适合用channel去实现。</li>
+<li>主动触发pod的同步，asw和dsw对齐, 不依赖周期性的sync</li>
+<li>周期性向container runtime查询当前所有容器的状态</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">func (kl *Kubelet) syncLoop(updates &lt;-chan kubetypes.PodUpdate, handler SyncHandler) &#123;</span><br><span class="line">	klog.Info(&quot;Starting kubelet main sync loop.&quot;)</span><br><span class="line">	</span><br><span class="line">	// 同步定时器，1s一次，为了保证pod的asw始终是是dsw状态</span><br><span class="line">	syncTicker := time.NewTicker(time.Second)</span><br><span class="line">	defer syncTicker.Stop()</span><br><span class="line">	</span><br><span class="line">    // 全局清理定时器，2s一次，Period for performing global cleanup tasks.</span><br><span class="line">	housekeepingTicker := time.NewTicker(housekeepingPeriod)</span><br><span class="line">	defer housekeepingTicker.Stop()</span><br><span class="line">	</span><br><span class="line">	// 返回channle，让订阅者可以接收到PodLifecycleEvent事件</span><br><span class="line">	// 主角pleg, 定时relist容器变化</span><br><span class="line">	// 是主动上报的, </span><br><span class="line">	// pod生命周期包括，Pod的创建、启动、停止、删除等</span><br><span class="line">	// 当发生这些事件，主动触发pod的同步，asw和dsw对齐。</span><br><span class="line">	plegCh := kl.pleg.Watch()</span><br><span class="line">	</span><br><span class="line">	for &#123;</span><br><span class="line">	if err := kl.runtimeState.runtimeErrors(); err != nil &#123;</span><br><span class="line">	// 为什么要先检查底层运行时状态？</span><br><span class="line">	// 因为要检查依赖条件是否满足，如果异常，需要忽略</span><br><span class="line">	// 底层运行时的状态都是通过kl.runtimeState这个对象维护的</span><br><span class="line">		klog.Errorf(&quot;skipping pod synchronization - %v&quot;, err)</span><br><span class="line">		// exponential backoff</span><br><span class="line">		// 指数型推迟，100ms-&gt;200ms-&gt;400ms,最大是5s</span><br><span class="line">		time.Sleep(duration)</span><br><span class="line">		duration = time.Duration(math.Min(float64(max), factor*float64(duration)))</span><br><span class="line">		continue</span><br><span class="line">	// reset backoff if we have a success</span><br><span class="line">	// 重置推迟时间 </span><br><span class="line">	duration = base</span><br><span class="line"></span><br><span class="line">	kl.syncLoopMonitor.Store(kl.clock.Now())</span><br><span class="line">	if !kl.syncLoopIteration(updates, handler, syncTicker.C, housekeepingTicker.C, plegCh) &#123;</span><br><span class="line">		break</span><br><span class="line">	&#125;</span><br><span class="line">	kl.syncLoopMonitor.Store(kl.clock.Now())</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<p>对syncloop模型的深入理解：</p>
+<ul>
+<li>k8s的消息，不需要rabbitmq， 而是事件驱动的，有定时任务的事件，也有主动上报的事件。而事件机制非常符合go语言的channel特性</li>
+<li>周期任务 + 主动触发，两种相互配合， 相互相成，缺一不可。</li>
+<li>syncloop的目的是为了维护单个pod的aws始终是dsw. 注意是单个pod，那如果是多个pod呢，即pod组</li>
+<li>那就要通过pod控制器了，保证多个pod始终是期望的个数，它们只是控制面真正的实体还是kubelet里的syncLoop来保证，具体就是修改etcd中pod数据（pod多了要删除，少了要增加），有了数据后，通过watch机制，传入到syncLoop的updates channel, 从而触发syncLoop来真正执行的。</li>
+<li>select case channel保证单个进程事件的通知，那跨进程如何保证，比如kubelet监听apiserver， 那不就是client-go的watch机制么</li>
+<li>不管是单进程（组件内部）还是多进程（组件之间）都体现了k8s是通过事件而非消息队列来通信的。</li>
+</ul>
+<h3 id="syncLoopIteration"><a href="#syncLoopIteration" class="headerlink" title="syncLoopIteration"></a>syncLoopIteration</h3><p>syncLoopIteration名字中Iteration体现在是在syncLoop后面执行的</p>
+<p>根据上面4个channel来的事件，调用handler.HandlePodxxx()</p>
+<h4 id="updates-ch-etcd中配置更新"><a href="#updates-ch-etcd中配置更新" class="headerlink" title="updates ch, etcd中配置更新"></a>updates ch, etcd中配置更新</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">handler.HandlePodAdditions //一样，同步类型：SyncPodCreate</span><br><span class="line"></span><br><span class="line">update和delet事件：</span><br><span class="line">handler.HandlePodUpdates   //一样，同步类型：SyncPodUpdate</span><br><span class="line"></span><br><span class="line">handler.HandlePodRemoves() =&gt; podManager.DeletePod(pod) + podKiller.KillPod()</span><br><span class="line"></span><br><span class="line">handler.HandlePodReconcile: // -&gt; kl.dispatchWork() -&gt; podworker.managePodLoop kl.podWorkers.UpdatePod() -&gt; podWorkers.managePodLoop()(起了一个协程) -&gt; kubelet.syncPod() -&gt; 创建pod流程了。</span><br></pre></td></tr></table></figure>
+
+<p>每个pod都运行一个managePodLoop</p>
+<h4 id="pleg通道，-主动上报"><a href="#pleg通道，-主动上报" class="headerlink" title="pleg通道， 主动上报"></a>pleg通道， 主动上报</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">case e := &lt;-plegCh:</span><br><span class="line">	if e.Type == pleg.ContainerStarted &#123;</span><br><span class="line">	    // 容器启动了，记录最后一个容器的启动</span><br><span class="line">    	kl.lastContainerStartedTime.Add(e.ID, time.Now())</span><br><span class="line">	&#125;</span><br><span class="line">	if isSyncPodWorthy(e) &#123;</span><br><span class="line">	    // 对于容器是删除，则不需要做pod sync</span><br><span class="line">	    handler.HandlePodSyncs([]*v1.Pod&#123;pod&#125;)</span><br><span class="line">	&#125;</span><br><span class="line">	// 如果容器变为了Died，则清理pod中的容器</span><br><span class="line">	if e.Type == pleg.ContainerDied &#123;</span><br><span class="line">	if containerID, ok := e.Data.(string); ok &#123;</span><br><span class="line">		kl.cleanUpContainersInPod(e.ID, containerID)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="sync-chan-周期任务"><a href="#sync-chan-周期任务" class="headerlink" title="sync chan 周期任务"></a>sync chan 周期任务</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">handler.HandlePodSyncs(podsToSync)</span><br></pre></td></tr></table></figure>
+
+<h4 id="livenessManager"><a href="#livenessManager" class="headerlink" title="livenessManager"></a>livenessManager</h4><p>主动杀死的<br>检测容器是否还活着，liveness</p>
+<p>当probe结果是Failure时，HandlePodSyncs</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">case update := &lt;-kl.livenessManager.Updates():</span><br><span class="line">	if update.Result == proberesults.Failure &#123;</span><br><span class="line">		pod, ok := kl.podManager.GetPodByUID(update.PodUID)</span><br><span class="line">           ...</span><br><span class="line">		handler.HandlePodSyncs([]*v1.Pod&#123;pod&#125;)</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="housekeepingCh-管家，清理家"><a href="#housekeepingCh-管家，清理家" class="headerlink" title="housekeepingCh, 管家，清理家"></a>housekeepingCh, 管家，清理家</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">case &lt;-housekeepingCh:</span><br><span class="line">    // 等待资源ready后，才会做cleanup, </span><br><span class="line">    // If the sources aren&#x27;t ready or volume manager has not yet synced the states,</span><br><span class="line">	// skip housekeeping, as we may accidentally delete pods from unready sources.</span><br><span class="line">	if !kl.sourcesReady.AllReady() &#123;</span><br><span class="line">	   ...</span><br><span class="line">	&#125; else &#123;</span><br><span class="line">   		klog.V(4).Infof(&quot;SyncLoop (housekeeping)&quot;)</span><br><span class="line">   		if err := handler.HandlePodCleanups(); err != nil &#123;</span><br><span class="line">   			klog.Errorf(&quot;Failed cleaning pods: %v&quot;, err)</span><br><span class="line">   		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>对 pod 进行增删改操作, 其实最后都会跳到 <code>dispatchWork</code> 方法上.<br><img src="SyncPodType.png" alt="img.png"><br>该方法里主要定义了类型 <code>kubetypes.SyncPodType</code>, 然后调用 <code>podWrokers.UpdatePod()</code> 异步操作 pod.</p>
+<p>对于每一个Pod，<code>kubelet</code>的<code>podworker</code>都会新起一个<code>goroutine</code>来运行<code>updatePod -&gt; managePodLoop</code>, 最后是运行<code>kubelet</code>的<code>syncPod()</code>, 在这里根据<code>podworker</code>传入的更新类型，区分出来是删除，创建，还是更新。</p>
+<p>在这些操作中，会设置pod的状态，没必要设置完成才能继续下一步，而是采用异步方式，写入一个channel， 而status manager 会一直监听这个channel，读取数据，client就可以继续后面流程了，而status manager会触发syncPod及syncBatch()，调用client-go来修改状态。</p>
+<h2 id="syncpod"><a href="#syncpod" class="headerlink" title="syncpod"></a>syncpod</h2><p>kubelet启动的<code>syncLoop</code>监听事件， 根据不同的事件类型<code>podworker</code>提供s<code>yncpod()</code>能力，实现<strong>单个</strong>pod的同步</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Kubelet.syncPod()</span><br><span class="line">-&gt; kl.containerRuntime.SyncPod() //调用容器的运行时 SyncPod 完成容器重建,即kubeGenericRuntimeManager</span><br><span class="line">   -&gt; m.createPodSandbox() // m表示上面的manager</span><br><span class="line">      -&gt; m.runtimeService.RunPodSandbox() // 是NewManager时的入参remoteRuntimeService</span><br><span class="line">         -&gt; r.runtimeClient.RunPodSandbox() //r表示remoteRuntimeService, 在New它时，也初始化了client</span><br><span class="line"></span><br><span class="line">=&gt; GRPC 通过remoteRuntimeEndpoint（unix:///var/run/dockershim.sock&quot;）确定，CRI另一侧</span><br><span class="line"></span><br><span class="line">dockerServer启动后，提供rpc service需求，此时请求是RunPodSandbox</span><br><span class="line">-&gt; dockerService.RunPodSandbox() // dockerService如何创建的呢？见下面 kubelet/dockershim/docker_sandbox.go是作为内置在kubelet里的CRI server实现。</span><br><span class="line">  -&gt; ds.network.SetUpPod() // network见dockerService的构建， 这说明cni是传给了CRI。替换了docker原先的libnetwork库？？</span><br><span class="line">     -&gt; pm.plugin.SetUpPod() // plugin就是初始化Manager时传入的那个，也就是选中的那个</span><br><span class="line">        -&gt; plugin.addToNetwork() // 在dockershim里</span><br><span class="line">           -&gt; cniNet.AddNetworkList() // cniNet是cni/libcni里的对象，入参有多个plugin的配置，该对象定义在cni/libcni，还有sandbox id， namesapce等运行时返回的参数（resp），这样cni才可以进入到这个pod的空间去配置网络参数</span><br><span class="line">              -&gt; ExecPlugin 调用cni plugin bin, 完成pod内的网络设置。</span><br><span class="line">                 -&gt; 下一步就是要找到plugin的binary的实现的逻辑了，比如bridge, portmap, calico等。</span><br></pre></td></tr></table></figure>
+
+<p>代码位置： <code>github.com/containernetworking/cni/libcni/api.go</code></p>
+<p><code>libcni api</code>定义的接口规范<br><img src="K8s-CNI-RPC.png" alt="K8s-CNI-RPC.png">)</p>
+<blockquote>
+<p>infra容器创建后，但在其他容器创建前<br>pkg&#x2F;kubelet&#x2F;dockershim&#x2F;network&#x2F;cni&#x2F;cni.go</p>
+</blockquote>
+<blockquote>
+<p>&#x2F;&#x2F; Step 5: Setup networking for the sandbox.<br>All pod networking is setup by a CNI plugin discovered at startup time.<br>This plugin assigns the pod ip, sets up routes inside the sandbox,<br>creates interfaces etc.</p>
+</blockquote>
+<h2 id="lib-cni-库实现"><a href="#lib-cni-库实现" class="headerlink" title="lib cni 库实现"></a>lib cni 库实现</h2><p><code>vendor/github.com/containernetworking/cni/libcni/api.go</code></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *CNIConfig)</span></span> AddNetworkList(ctx context.Context, list *NetworkConfigList, rt *RuntimeConf) (types.Result, <span class="type">error</span>) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> _, net := <span class="keyword">range</span> list.Plugins &#123;</span><br><span class="line">        result, err = c.addNetwork(ctx, list.Name, list.CNIVersion, net, result, rt)</span><br><span class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">        &#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *CNIConfig)</span></span> addNetwork(ctx context.Context, name, cniVersion <span class="type">string</span>, net *NetworkConfig, prevResult types.Result, rt *RuntimeConf) (types.Result, <span class="type">error</span>) &#123;</span><br><span class="line">c.ensureExec()</span><br><span class="line">    <span class="comment">// </span></span><br><span class="line">    pluginPath, err := c.exec.FindInPath(net.Network.Type, c.Path)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    newConf, err := buildOneConfig(name, cniVersion, net, prevResult, rt)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 通过二进制方式调用插件的ADD</span></span><br><span class="line">    <span class="keyword">return</span> invoke.ExecPluginWithResult(ctx, pluginPath, newConf.Bytes, c.args(<span class="string">&quot;ADD&quot;</span>, rt), c.exec)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>入参list表示配置文件中，使用的cni列表。</p>
+<p>遍历每一个cni插件，调用其ADD接口实现。</p>
+<h3 id="host-local-插件分析"><a href="#host-local-插件分析" class="headerlink" title="host-local 插件分析"></a>host-local 插件分析</h3><h2 id="删除-pod-流程-HandlePodRemoves"><a href="#删除-pod-流程-HandlePodRemoves" class="headerlink" title="删除 pod 流程 (HandlePodRemoves)"></a>删除 pod 流程 (HandlePodRemoves)</h2><ol>
+<li>podManager删除pod</li>
+<li>调用containerRuntime.KillPod()</li>
+<li>probeManager将该pod的三种类型的探针worker都stop<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(kl *Kubelet)</span></span> HandlePodRemoves(pods []*v1.Pod) &#123;</span><br><span class="line">    start := kl.clock.Now()</span><br><span class="line">    <span class="keyword">for</span> _, pod := <span class="keyword">range</span> pods &#123;</span><br><span class="line">        kl.podManager.DeletePod(pod)</span><br><span class="line">        <span class="keyword">if</span> kubetypes.IsMirrorPod(pod) &#123;</span><br><span class="line">            kl.handleMirrorPod(pod, start)</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// Deletion is allowed to fail because the periodic cleanup routine</span></span><br><span class="line">        <span class="comment">// will trigger deletion again.</span></span><br><span class="line">        <span class="keyword">if</span> err := kl.deletePod(pod); err != <span class="literal">nil</span> &#123;</span><br><span class="line">            klog.V(<span class="number">2</span>).Infof(<span class="string">&quot;Failed to delete pod %q, err: %v&quot;</span>, format.Pod(pod), err)</span><br><span class="line">        &#125;</span><br><span class="line">        kl.probeManager.RemovePod(pod)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+</ol>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                
+                
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/cni/"># cni</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2023/04/25/pod%E4%B8%AD%E7%9A%84%E9%BB%98%E8%AE%A4%E8%B7%AF%E7%94%B1/">pod中的默认路由</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Mingeer | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>
