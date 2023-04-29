@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Mingeer">
+
+
+
+
+
+<title>cni tools | Mingeer</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Bentham&#39;s Blog</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Bentham&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">cni tools</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Mingeer</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">April 29, 2023&nbsp;&nbsp;23:02:41</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/kubernetes/">kubernetes</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p><img src="/.io//cni-plugin.png" alt="cni-plugin.png"></p>
+<h2 id="install-cnitool"><a href="#install-cnitool" class="headerlink" title="install cnitool"></a>install cnitool</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">go</span> get github.com/containernetworking/cni</span><br><span class="line"><span class="keyword">go</span> install github.com/containernetworking/cni/cnitool</span><br></pre></td></tr></table></figure>
+<p>安装可应用程序，即该包下需有main(), 安装到<code>&lt;GOPATH&gt;/bin/</code>下</p>
+<h2 id="build-plugins"><a href="#build-plugins" class="headerlink" title="build plugins"></a>build plugins</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">git clone https:<span class="comment">//github.com/containernetworking/plugins.git</span></span><br><span class="line">cd plugins</span><br><span class="line">./build_linux.sh</span><br><span class="line"># or</span><br><span class="line">./build_windows.sh</span><br></pre></td></tr></table></figure>
+<p><code>plugin</code>编译到本项目<code>bin</code>目录下</p>
+<h2 id="创建网络配置"><a href="#创建网络配置" class="headerlink" title="创建网络配置"></a>创建网络配置</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ echo <span class="string">&#x27;&#123;&quot;cniVersion&quot;:&quot;0.4.0&quot;,&quot;name&quot;:&quot;myptp&quot;,&quot;type&quot;:&quot;ptp&quot;,&quot;ipMasq&quot;:true,&quot;ipam&quot;:&#123;&quot;type&quot;:&quot;host-local&quot;,&quot;subnet&quot;:&quot;172.16.29.0/24&quot;,&quot;routes&quot;:[&#123;&quot;dst&quot;:&quot;0.0.0.0/0&quot;&#125;]&#125;&#125;&#x27;</span> | sudo tee /etc/cni/net.d/<span class="number">10</span>-myptp.conf</span><br><span class="line"></span><br><span class="line">$ ip netns add testing</span><br><span class="line">此时网络空间只有<span class="string">`lo`</span>网络</span><br></pre></td></tr></table></figure>
+
+<h2 id="将容器加入网络"><a href="#将容器加入网络" class="headerlink" title="将容器加入网络"></a>将容器加入网络</h2><p>而不是网络加入容器</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">CNI_PATH=./bin cnitool add myptp /var/run/netns/testing</span></span><br><span class="line">&#123;</span><br><span class="line">    &quot;cniVersion&quot;: &quot;0.4.0&quot;,</span><br><span class="line">    &quot;interfaces&quot;: [</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;name&quot;: &quot;veth901f3f45&quot;,</span><br><span class="line">            &quot;mac&quot;: &quot;c6:28:60:c6:cc:a8&quot;</span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;name&quot;: &quot;eth0&quot;,</span><br><span class="line">            &quot;mac&quot;: &quot;d6:30:5f:05:21:dd&quot;,</span><br><span class="line">            &quot;sandbox&quot;: &quot;/var/run/netns/testing&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    ],</span><br><span class="line">    &quot;ips&quot;: [</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;version&quot;: &quot;4&quot;,</span><br><span class="line">            &quot;interface&quot;: 1,</span><br><span class="line">            &quot;address&quot;: &quot;172.16.29.2/24&quot;,</span><br><span class="line">            &quot;gateway&quot;: &quot;172.16.29.1&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    ],</span><br><span class="line">    &quot;routes&quot;: [</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;dst&quot;: &quot;0.0.0.0/0&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    ],</span><br><span class="line">    &quot;dns&quot;: &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>host侧</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># ip a</span><br><span class="line">26: veth901f3f45@if2: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default </span><br><span class="line">    link/ether c6:28:60:c6:cc:a8 brd ff:ff:ff:ff:ff:ff link-netns testing</span><br><span class="line">    inet 172.16.29.1/32 scope global veth901f3f45</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::c428:60ff:fec6:cca8/64 scope link </span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">       </span><br><span class="line"># ip r | grep f45</span><br><span class="line">172.16.29.2 dev veth901f3f45 scope host </span><br></pre></td></tr></table></figure>
+<p>host侧， veth pair设备及router均配置好</p>
+<p>ns侧</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># ip netns exec testing ip a</span><br><span class="line">1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">2: eth0@if26: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default </span><br><span class="line">    link/ether d6:30:5f:05:21:dd brd ff:ff:ff:ff:ff:ff link-netnsid 0</span><br><span class="line">    inet 172.16.29.2/24 brd 172.16.29.255 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::d430:5fff:fe05:21dd/64 scope link </span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">       </span><br><span class="line"># ip netns exec testing ip r</span><br><span class="line">default via 172.16.29.1 dev eth0 </span><br><span class="line">172.16.29.0/24 via 172.16.29.1 dev eth0 src 172.16.29.2 //下一跳指向host侧的veth pair口</span><br><span class="line">172.16.29.1 dev eth0 scope link src 172.16.29.2 </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>ns中增加了一个网络，在ns侧生成新的eth0 interface；在host侧对应的veth pair是veth901f3f45<br>ns中的默认路由也是veth pair的地址。</p>
+<p>这里与使用calico作为cni的pod，原理是不同的</p>
+<h2 id="检查联通性"><a href="#检查联通性" class="headerlink" title="检查联通性"></a>检查联通性</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">从host上ping ns</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">ping 172.16.29.2</span></span><br><span class="line">PING 172.16.29.2 (172.16.29.2) 56(84) bytes of data.</span><br><span class="line">64 bytes from 172.16.29.2: icmp_seq=1 ttl=64 time=0.879 ms</span><br><span class="line"></span><br><span class="line">从ns ping host上网卡</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">ip netns <span class="built_in">exec</span> testing ping 10.211.55.5</span></span><br><span class="line">PING 10.211.55.5 (10.211.55.5) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.211.55.5: icmp_seq=1 ttl=64 time=1.78 ms</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="清理"><a href="#清理" class="headerlink" title="清理"></a>清理</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">CNI_PATH=./bin cnitool del myptp /var/run/netns/testing</span><br><span class="line">sudo ip netns del testing</span><br></pre></td></tr></table></figure>
+
+<h2 id="实现原理分析"><a href="#实现原理分析" class="headerlink" title="实现原理分析"></a>实现原理分析</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">cnitool -h</span></span><br><span class="line">cnitool: Add, check, or remove network interfaces from a network namespace</span><br><span class="line">  cnitool add   &lt;net&gt; &lt;netns&gt;</span><br><span class="line">  cnitool check &lt;net&gt; &lt;netns&gt;</span><br><span class="line">  cnitool del   &lt;net&gt; &lt;netns&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">cninet := libcni.NewCNIConfig(<span class="string">&quot;&lt;binary-path&gt;&quot;</span>, <span class="literal">nil</span>)</span><br><span class="line"></span><br><span class="line">   netconf, err := libcni.LoadConfList(<span class="string">&quot;/etc/cni/net.d/&quot;</span>, <span class="string">&quot;my_net_name&quot;</span>)</span><br><span class="line"></span><br><span class="line">rt := &amp;libcni.RuntimeConf&#123;</span><br><span class="line">   ContainerID:    containerID,</span><br><span class="line">   NetNS:          netns,</span><br><span class="line">   IfName:         ifName,</span><br><span class="line">   Args:           cniArgs,</span><br><span class="line">   CapabilityArgs: capabilityArgs,</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   cninet.AddNetworkList(context.TODO(), netconf, rt)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>输入网络的配置（使用哪个cni插件及其配置）和运行时的配置（配置哪个容器）两个对象，最后调用<code>result := AddNetworkList</code>完成host, ns两侧网卡和路由信息的设置,打通了两种之间的网络互通。</li>
+<li>result就是实际在环境上配置的参数。</li>
+</ul>
+<h2 id="Ref"><a href="#Ref" class="headerlink" title="Ref"></a>Ref</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://www.cni.dev/docs/cnitool/">https://www.cni.dev/docs/cnitool/</a></li>
+</ol>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                
+                
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/cni/"># cni</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2023/04/29/kubelet-call-cni/">kubelet call cni</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Mingeer | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>
