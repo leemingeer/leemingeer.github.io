@@ -69,7 +69,7 @@
         <header>
     <nav class="navbar">
         <div class="container">
-            <div class="navbar-header header-logo"><a href="/">Bentham&#39;s Blog</a></div>
+            <div class="navbar-header header-logo"><a href="/">Ming&#39;s Time</a></div>
             <div class="menu navbar-right">
                 
                     <a class="menu-item" href="/archives">Posts</a>
@@ -91,7 +91,7 @@
         <div class="container">
             <div class="navbar-header">
                 <div>
-                    <a href="/">Bentham&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                    <a href="/">Ming&#39;s Time</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
                 </div>
                 <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
             </div>
@@ -221,7 +221,7 @@
         </header>
 
         <div class="post-content">
-            <p><img src="/.io//kubelet-call-cni.png" alt="img.png"></p>
+            <p><img src="/2023/04/29/kubelet-call-cni/kubelet-call-cni.png" alt="img.png"></p>
 <h1 id="kubelet-call-cni"><a href="#kubelet-call-cni" class="headerlink" title="kubelet call cni"></a>kubelet call cni</h1><h2 id="kubelet-run"><a href="#kubelet-run" class="headerlink" title="kubelet.run"></a>kubelet.run</h2><p>启动kubelet的各个Manager，</p>
 <p>注意syncLoop()这个pod状态同步是个<code>for&#123;&#125;</code>形的死循环。</p>
 <p>因为需要将依赖的各个控制器先启动起来，才能进行pod的<code>syncLoop()</code>控制。所以<code>syncLoop()</code>是在最后启动</p>
@@ -284,14 +284,14 @@
 
 <h4 id="housekeepingCh-管家，清理家"><a href="#housekeepingCh-管家，清理家" class="headerlink" title="housekeepingCh, 管家，清理家"></a>housekeepingCh, 管家，清理家</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">case &lt;-housekeepingCh:</span><br><span class="line">    // 等待资源ready后，才会做cleanup, </span><br><span class="line">    // If the sources aren&#x27;t ready or volume manager has not yet synced the states,</span><br><span class="line">	// skip housekeeping, as we may accidentally delete pods from unready sources.</span><br><span class="line">	if !kl.sourcesReady.AllReady() &#123;</span><br><span class="line">	   ...</span><br><span class="line">	&#125; else &#123;</span><br><span class="line">   		klog.V(4).Infof(&quot;SyncLoop (housekeeping)&quot;)</span><br><span class="line">   		if err := handler.HandlePodCleanups(); err != nil &#123;</span><br><span class="line">   			klog.Errorf(&quot;Failed cleaning pods: %v&quot;, err)</span><br><span class="line">   		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<p>对 pod 进行增删改操作, 其实最后都会跳到 <code>dispatchWork</code> 方法上.<br><img src="/.io//SyncPodType.png" alt="img.png"><br>该方法里主要定义了类型 <code>kubetypes.SyncPodType</code>, 然后调用 <code>podWrokers.UpdatePod()</code> 异步操作 pod.</p>
+<p>对 pod 进行增删改操作, 其实最后都会跳到 <code>dispatchWork</code> 方法上.<br><img src="/2023/04/29/kubelet-call-cni/SyncPodType.png" alt="img.png"><br>该方法里主要定义了类型 <code>kubetypes.SyncPodType</code>, 然后调用 <code>podWrokers.UpdatePod()</code> 异步操作 pod.</p>
 <p>对于每一个Pod，<code>kubelet</code>的<code>podworker</code>都会新起一个<code>goroutine</code>来运行<code>updatePod -&gt; managePodLoop</code>, 最后是运行<code>kubelet</code>的<code>syncPod()</code>, 在这里根据<code>podworker</code>传入的更新类型，区分出来是删除，创建，还是更新。</p>
 <p>在这些操作中，会设置pod的状态，没必要设置完成才能继续下一步，而是采用异步方式，写入一个channel， 而status manager 会一直监听这个channel，读取数据，client就可以继续后面流程了，而status manager会触发syncPod及syncBatch()，调用client-go来修改状态。</p>
 <h2 id="syncpod"><a href="#syncpod" class="headerlink" title="syncpod"></a>syncpod</h2><p>kubelet启动的<code>syncLoop</code>监听事件， 根据不同的事件类型<code>podworker</code>提供s<code>yncpod()</code>能力，实现<strong>单个</strong>pod的同步</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Kubelet.syncPod()</span><br><span class="line">-&gt; kl.containerRuntime.SyncPod() //调用容器的运行时 SyncPod 完成容器重建,即kubeGenericRuntimeManager</span><br><span class="line">   -&gt; m.createPodSandbox() // m表示上面的manager</span><br><span class="line">      -&gt; m.runtimeService.RunPodSandbox() // 是NewManager时的入参remoteRuntimeService</span><br><span class="line">         -&gt; r.runtimeClient.RunPodSandbox() //r表示remoteRuntimeService, 在New它时，也初始化了client</span><br><span class="line"></span><br><span class="line">=&gt; GRPC 通过remoteRuntimeEndpoint（unix:///var/run/dockershim.sock&quot;）确定，CRI另一侧</span><br><span class="line"></span><br><span class="line">dockerServer启动后，提供rpc service需求，此时请求是RunPodSandbox</span><br><span class="line">-&gt; dockerService.RunPodSandbox() // dockerService如何创建的呢？见下面 kubelet/dockershim/docker_sandbox.go是作为内置在kubelet里的CRI server实现。</span><br><span class="line">  -&gt; ds.network.SetUpPod() // network见dockerService的构建， 这说明cni是传给了CRI。替换了docker原先的libnetwork库？？</span><br><span class="line">     -&gt; pm.plugin.SetUpPod() // plugin就是初始化Manager时传入的那个，也就是选中的那个</span><br><span class="line">        -&gt; plugin.addToNetwork() // 在dockershim里</span><br><span class="line">           -&gt; cniNet.AddNetworkList() // cniNet是cni/libcni里的对象，入参有多个plugin的配置，该对象定义在cni/libcni，还有sandbox id， namesapce等运行时返回的参数（resp），这样cni才可以进入到这个pod的空间去配置网络参数</span><br><span class="line">              -&gt; ExecPlugin 调用cni plugin bin, 完成pod内的网络设置。</span><br><span class="line">                 -&gt; 下一步就是要找到plugin的binary的实现的逻辑了，比如bridge, portmap, calico等。</span><br></pre></td></tr></table></figure>
 
 <p>代码位置： <code>github.com/containernetworking/cni/libcni/api.go</code></p>
-<p><code>libcni api</code>定义的接口规范<br><img src="/.io//K8s-CNI-RPC.png" alt="K8s-CNI-RPC.png">)</p>
+<p><code>libcni api</code>定义的接口规范<br><img src="/2023/04/29/kubelet-call-cni/K8s-CNI-RPC.png" alt="K8s-CNI-RPC.png">)</p>
 <blockquote>
 <p>infra容器创建后，但在其他容器创建前<br>pkg&#x2F;kubelet&#x2F;dockershim&#x2F;network&#x2F;cni&#x2F;cni.go</p>
 </blockquote>

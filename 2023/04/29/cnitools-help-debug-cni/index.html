@@ -69,7 +69,7 @@
         <header>
     <nav class="navbar">
         <div class="container">
-            <div class="navbar-header header-logo"><a href="/">Bentham&#39;s Blog</a></div>
+            <div class="navbar-header header-logo"><a href="/">Ming&#39;s Time</a></div>
             <div class="menu navbar-right">
                 
                     <a class="menu-item" href="/archives">Posts</a>
@@ -91,7 +91,7 @@
         <div class="container">
             <div class="navbar-header">
                 <div>
-                    <a href="/">Bentham&#39;s Blog</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                    <a href="/">Ming&#39;s Time</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
                 </div>
                 <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
             </div>
@@ -221,7 +221,7 @@
         </header>
 
         <div class="post-content">
-            <p><img src="/.io//cni-plugin.png" alt="cni-plugin.png"></p>
+            <p><img src="/2023/04/29/cnitools-help-debug-cni/cni-plugin.png" alt="cni-plugin.png"></p>
 <h2 id="install-cnitool"><a href="#install-cnitool" class="headerlink" title="install cnitool"></a>install cnitool</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">go</span> get github.com/containernetworking/cni</span><br><span class="line"><span class="keyword">go</span> install github.com/containernetworking/cni/cnitool</span><br></pre></td></tr></table></figure>
 <p>安装可应用程序，即该包下需有main(), 安装到<code>&lt;GOPATH&gt;/bin/</code>下</p>
 <h2 id="build-plugins"><a href="#build-plugins" class="headerlink" title="build plugins"></a>build plugins</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">git clone https:<span class="comment">//github.com/containernetworking/plugins.git</span></span><br><span class="line">cd plugins</span><br><span class="line">./build_linux.sh</span><br><span class="line"># or</span><br><span class="line">./build_windows.sh</span><br></pre></td></tr></table></figure>
