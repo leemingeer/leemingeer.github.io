@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Mingeer">
+
+
+
+
+
+<title>multi-attach error for volume | Mingeer</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Ming&#39;s Time</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Ming&#39;s Time</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">multi-attach error for volume</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Mingeer</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">May 8, 2023&nbsp;&nbsp;23:34:06</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/kubernetes/">kubernetes</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h1 id="k8s-multi-attach-error-for-volume"><a href="#k8s-multi-attach-error-for-volume" class="headerlink" title="k8s multi-attach error for volume"></a>k8s multi-attach error for volume</h1><h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><p>分别创建3个使用同一个pvc的pod, 1和2调度到master1节点，3调度到master2节点</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># kubectl get pod -o wide</span><br><span class="line">NAME                          READY   STATUS              RESTARTS   AGE     IP       NODE      NOMINATED NODE   READINESS GATES</span><br><span class="line">demo-csi-1-6f5975b88f-khdw6   0/1     ContainerCreating   0          2m20s   &lt;none&gt;   master1   &lt;none&gt;           &lt;none&gt;</span><br><span class="line">demo-csi-2-6f5975b88f-n9p8z   0/1     ContainerCreating   0          2m4s    &lt;none&gt;   master1   &lt;none&gt;           &lt;none&gt;</span><br><span class="line">demo-csi-3-7cdfc7786-gb7bt    0/1     ContainerCreating   0          69s     &lt;none&gt;   master2   &lt;none&gt;           &lt;none&gt;</span><br><span class="line"></span><br><span class="line"># kubectl describe pod demo-csi-3-7cdfc7786-gb7bt</span><br><span class="line">...</span><br><span class="line">Events:</span><br><span class="line">  Type     Reason              Age   From                     Message</span><br><span class="line">  ----     ------              ----  ----                     -------</span><br><span class="line">  Normal   Scheduled           42s   ake-scheduler            Successfully assigned default/demo-csi-3-7cdfc7786-gb7bt to master2</span><br><span class="line">  Warning  FailedAttachVolume  42s   attachdetach-controller  Multi-Attach error for volume &quot;pvc-f3a38946-74ee-4eda-835c-fab5ce76c6fd&quot; Volume is already used by pod(s) demo-csi-2-6f5975b88f-n9p8z, demo-csi-1-6f5975b88f-khdw6</span><br></pre></td></tr></table></figure>
+<p>可以看到只有3号pod报<code>multi-attach</code>告警事件。<br>attach是node级别的，<code>multi attach</code>表示该卷被attach到不同的节点。如果是attach到相同节点不会报错误。</p>
+<p>疑问：<code>globalmount</code>被bind mount到多个pod挂载点，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># kubectl get node master1 -o yaml</span><br><span class="line">...</span><br><span class="line">  volumesAttached:</span><br><span class="line">  - devicePath: &quot;&quot;</span><br><span class="line">    name: kubernetes.io/csi/arstor.csi.ake.com^arstor--0bf5059875921e668a5bdf2c7fc48445--pvcf3a3894674ee4eda835cfab5ce76c6fd--iqn.2010-01.com.example:k8s--kataDirect:false</span><br><span class="line">  volumesInUse:</span><br><span class="line">  - kubernetes.io/csi/arstor.csi.ake.com^arstor--0bf5059875921e668a5bdf2c7fc48445--pvcf3a3894674ee4eda835cfab5ce76c6fd--iqn.2010-01.com.example:k8s--kataDirect:false</span><br><span class="line"></span><br><span class="line"># kubectl get node master2 -o yaml</span><br><span class="line">...</span><br><span class="line">  volumesInUse:</span><br><span class="line">  - kubernetes.io/csi/arstor.csi.ake.com^arstor--0bf5059875921e668a5bdf2c7fc48445--pvcf3a3894674ee4eda835cfab5ce76c6fd--iqn.2010-01.com.example:k8s--kataDirect:false</span><br><span class="line">  </span><br><span class="line"># kubectl get node master3 -o yaml</span><br><span class="line">no volumesInUse &amp;&amp; volumesAttached信息</span><br></pre></td></tr></table></figure>
+
+<p><code>volumesAttached</code>表示volume已经attach到node节点了，因为multi attach error所以在master2上没有该attach信息。</p>
+<p>和<code>volumesInUse</code><br>应该是调度的结果，也就是<code>dsw</code>的期望的，而<code>asw</code>是维护实际的状态，当前pod使用的卷因为网络原因，未attach到node上来，导致容器处于<code>pending</code>状态</p>
+<h2 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h2><p>在<code>kube-controller-manager</code>中的<code>adc(attach detach controller)</code>会有<code>reconcile</code> 循环</p>
+<p>位置 <code>pkg/controller/volume/attachdetach/attach_detach_controller.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">func (adc *attachDetachController) Run(stopCh &lt;-chan struct&#123;&#125;) &#123;</span><br><span class="line"></span><br><span class="line">	err := adc.populateActualStateOfWorld()</span><br><span class="line">	...</span><br><span class="line">	err  = adc.populateDesiredStateOfWorld()</span><br><span class="line">    ...</span><br><span class="line">    // 周期性调谐，保证volume attach/detach是期望的状态</span><br><span class="line">	go adc.reconciler.Run(stopCh)</span><br><span class="line">	go adc.desiredStateOfWorldPopulator.Run(stopCh)</span><br><span class="line">	go wait.Until(adc.pvcWorker, time.Second, stopCh)</span><br><span class="line">	</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<p>主要运行4个方法</p>
+<p>（1）adc.populateActualStateOfWorld()<br>（2）adc.populateDesiredStateOfWorld()<br>（3）adc.reconciler.Run()<br>（4）adc.desiredStateOfWorldPopulator.Run()</p>
+<p>下面以第3个方法展开分析</p>
+<h3 id="adc-reconciler-Run"><a href="#adc-reconciler-Run" class="headerlink" title="adc.reconciler.Run()"></a>adc.reconciler.Run()</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">func (rc *reconciler) reconcile() &#123;</span><br><span class="line">    // 保证detach卷都被detach了</span><br><span class="line">    // 从asw里获取已经attach的卷，对每一个卷做detach对齐，及对于不应该attach卷，去做detach</span><br><span class="line">    for _, attachedVolume := range rc.actualStateOfWorld.GetAttachedVolumes()&#123;</span><br><span class="line">        // 卷在asw有，但是dsw里已经没有了</span><br><span class="line">    	if !rc.desiredStateOfWorld.VolumeExists(</span><br><span class="line">			attachedVolume.VolumeName, attachedVolume.NodeName)&#123;</span><br><span class="line">			    ...</span><br><span class="line">		&#125;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    // 一定是从dsw里获取</span><br><span class="line">    rc.attachDesiredVolumes()</span><br><span class="line"></span><br><span class="line">    // asw和dsw对象各域更新好后，最后更新 node的status</span><br><span class="line">    rc.nodeStatusUpdater.UpdateNodeStatuses()</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">func (rc *reconciler) attachDesiredVolumes() &#123;</span><br><span class="line">    // 对于dsw中的每一个卷，进行检查</span><br><span class="line">    for _, volumeToAttach := range rc.desiredStateOfWorld.GetVolumesToAttach() &#123;</span><br><span class="line">    ...</span><br><span class="line">        // 该卷不允许多挂</span><br><span class="line">		if !util.IsMultiAttachAllowed(volumeToAttach.VolumeSpec) &#123;</span><br><span class="line">		    // 挂载该卷的node</span><br><span class="line">			nodes := rc.actualStateOfWorld.GetNodesForAttachedVolume(volumeToAttach.VolumeName)</span><br><span class="line">			if len(nodes) &gt; 0 &#123;</span><br><span class="line">			    // 该卷挂载到某节点了，可能是本次相同的节点，也可能是other node， 而且没有上报过multiattach error, 则reportMultiAttachError</span><br><span class="line">				if !volumeToAttach.MultiAttachErrorReported &#123;</span><br><span class="line">					rc.reportMultiAttachError(volumeToAttach, nodes)</span><br><span class="line">					rc.desiredStateOfWorld.SetMultiAttachError(volumeToAttach.VolumeName, volumeToAttach.NodeName)</span><br><span class="line">				&#125;</span><br><span class="line">				continue</span><br><span class="line">			&#125;</span><br><span class="line">			// 如果该卷没有attach到node过，不会上报multi attach，这是最常见的情况了</span><br><span class="line">		&#125;</span><br><span class="line">	...</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">入参是volumeToAttach.VolumeName</span><br><span class="line">func (asw *actualStateOfWorld) GetNodesForAttachedVolume(volumeName v1.UniqueVolumeName) []types.NodeName &#123;</span><br><span class="line">	asw.RLock()</span><br><span class="line">	defer asw.RUnlock()</span><br><span class="line"></span><br><span class="line">    // 在asw中的`attachedVolumes`中找到`volumeObj`,</span><br><span class="line">	volumeObj, volumeExists := asw.attachedVolumes[volumeName]</span><br><span class="line">	// 如果该卷没有attached过，或者attach过但是记录未空，直接返回空节点列表</span><br><span class="line">	if !volumeExists || len(volumeObj.nodesAttachedTo) == 0 &#123;</span><br><span class="line">		return []types.NodeName&#123;&#125;</span><br><span class="line">	&#125;</span><br><span class="line">    // 如果之前attach过，则返回attached过的节点列表</span><br><span class="line">	nodes := []types.NodeName&#123;&#125;</span><br><span class="line">	for nodeName, nodesAttached := range volumeObj.nodesAttachedTo &#123;</span><br><span class="line">		if nodesAttached.attachedConfirmed &#123;</span><br><span class="line">			nodes = append(nodes, nodeName)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	return nodes</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>主要是查看<code>asw.attachedVolumes</code>对象的状态;<br>nodes会有3种情况</p>
+<ul>
+<li>0, 表第一次attach</li>
+<li>非0，attach过且和本次节点相同</li>
+<li>非0，attach过且和本次节点不相同</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">func (rc *reconciler) reportMultiAttachError(volumeToAttach cache.VolumeToAttach, nodes []types.NodeName) &#123;</span><br><span class="line">    // 对于dsw中的这个未attach到nodde的volume</span><br><span class="line">	otherNodes := []types.NodeName&#123;&#125;</span><br><span class="line">	otherNodesStr := []string&#123;&#125;</span><br><span class="line">	</span><br><span class="line">	// 根据volume对象当前绑定的节点，筛选出other nodes</span><br><span class="line">	for _, node := range nodes &#123;</span><br><span class="line">		if node != volumeToAttach.NodeName &#123;</span><br><span class="line">			otherNodes = append(otherNodes, node)</span><br><span class="line">			otherNodesStr = append(otherNodesStr, string(node))</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	// 在other nodes上统计引用该volume的pod</span><br><span class="line">	pods := rc.desiredStateOfWorld.GetVolumePodsOnNodes(otherNodes, volumeToAttach.VolumeName)</span><br><span class="line">	</span><br><span class="line">	// 在其他节点找不到使用该volume的pod，说明pod已经被删掉了</span><br><span class="line">	// asw.attachedVolumes中残留这volume之前绑定的信息，而此时volume绑到其他node上，触发multi attach告警，volume只能唯一绑定某个node</span><br><span class="line">	// 可能是清理不全导致，所以每一步状态记录都要慎重，因为你要维护好它的状态啊</span><br><span class="line">	if len(pods) == 0 &#123;</span><br><span class="line">		simpleMsg, _ := volumeToAttach.GenerateMsg(&quot;Multi-Attach error&quot;, &quot;Volume is already exclusively attached to one node and can&#x27;t be attached to another&quot;)</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	// 到这里，说明在其他节点上有引用该volume的pod, // 通常是使用者的问题，比如replicaset使用同一个pvc，但是有多个副本。因为dp通常是// 无状态的，不该开启多副本还使用pvc. 需要改成sts来使用多副本，</span><br><span class="line">	// 需要上报错误信息提醒用户</span><br><span class="line">	</span><br><span class="line">	// 统计出使用重复使用volume的pod信息，即</span><br><span class="line">	// 遍历本次volume被分配到的pods列表</span><br><span class="line">	for _, scheduledPod := range volumeToAttach.ScheduledPods &#123;</span><br><span class="line">	    // 与其他接地点上，使用该volume的pod比对</span><br><span class="line">	    for _, pod := range pods &#123;</span><br><span class="line">	        if pod.Namespace == scheduledPod.Namespace &#123;</span><br><span class="line">				localPodNames = append(localPodNames, pod.Name)</span><br><span class="line">			&#125; else &#123;</span><br><span class="line">				otherPods++</span><br><span class="line">			&#125;</span><br><span class="line">	    &#125;</span><br><span class="line">	</span><br><span class="line">	&#125;</span><br><span class="line">	// Log all pods for system admin</span><br><span class="line">	podNames := []string&#123;&#125;</span><br><span class="line">	for _, pod := range pods &#123;</span><br><span class="line">		podNames = append(podNames, pod.Namespace+&quot;/&quot;+pod.Name)</span><br><span class="line">	&#125;</span><br><span class="line">	将已经引用该卷的pod及所在node的信息以事件形式上报到本次pod中，提醒用户</span><br><span class="line">	detailedMsg := volumeToAttach.GenerateMsgDetailed(&quot;Multi-Attach error&quot;, fmt.Sprintf(&quot;Volume is already used by pods %s on node %s&quot;, strings.Join(podNames, &quot;, &quot;), strings.Join(otherNodesStr, &quot;, &quot;)))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="adc-populateActualStateOfWorld"><a href="#adc-populateActualStateOfWorld" class="headerlink" title="adc.populateActualStateOfWorld()"></a>adc.populateActualStateOfWorld()</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">type actualStateOfWorld struct &#123;</span><br><span class="line">    // 记录绑定到节点的node</span><br><span class="line">	attachedVolumes map[v1.UniqueVolumeName]attachedVolume</span><br><span class="line">	</span><br><span class="line">	// 要更新的node, 是VolumesAttached Status field. map记录 node和node上attached的volume</span><br><span class="line">	nodesToUpdateStatusFor map[types.NodeName]nodeToUpdateStatusFor</span><br><span class="line">	</span><br><span class="line">	volumePluginMgr *volume.VolumePluginMgr</span><br><span class="line"></span><br><span class="line">	sync.RWMutex</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>asw关心volume和node对象的关系；volume 管理 attached部分； node 管理 要更新status的部分</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">func (adc *attachDetachController) populateActualStateOfWorld() error &#123;</span><br><span class="line">    // 拿到所有的nodes对象</span><br><span class="line">    nodes, err := adc.nodeLister.List(labels.Everything())</span><br><span class="line">    // 遍历每一个node</span><br><span class="line">    for _, node := range nodes &#123;</span><br><span class="line">        nodeName := types.NodeName(node.Name)</span><br><span class="line">        // 遍历当前node对象中的VolumesAttached属性，谁给它赋值？</span><br><span class="line">        for _, attachedVolume := range node.Status.VolumesAttached &#123;</span><br><span class="line">    		err = adc.actualStateOfWorld.MarkVolumeAsAttached(uniqueName, nil /* VolumeSpec */, nodeName, attachedVolume.DevicePath)</span><br><span class="line">    		if err != nil &#123;</span><br><span class="line">				klog.Errorf(&quot;Failed to mark the volume as attached: %v&quot;, err)</span><br><span class="line">				continue</span><br><span class="line">			&#125;</span><br><span class="line">            adc.processVolumesInUse(nodeName, node.Status.VolumesInUse)</span><br><span class="line">            adc.addNodeToDswp(node, types.NodeName(node.Name))</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，对于每个node对象，已经附着在其上的卷都做下面三个流程的处理：</p>
+<ul>
+<li>MarkVolumeAsAttached()<ul>
+<li>此处volumeSpec是nil, 该流程是将持久化到etcd的node.status上的attached的volume和在控制器内存中的asw.attachedVolumes进行对齐，如果该步骤出现问题，后面步骤不会进行。避免控制器面与集群真实不一致。从而避免出现管理混乱的局面</li>
+</ul>
+</li>
+<li>processVolumesInUse</li>
+<li>addNodeToDswp</li>
+</ul>
+<h4 id="MarkVolumeAsAttached"><a href="#MarkVolumeAsAttached" class="headerlink" title="MarkVolumeAsAttached"></a>MarkVolumeAsAttached</h4><p>node.Status.VolumesAttached是由asw.MarkVolumeAsAttached赋值</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">func (asw *actualStateOfWorld) MarkVolumeAsAttached(</span><br><span class="line">	uniqueName v1.UniqueVolumeName, volumeSpec *volume.Spec, nodeName types.NodeName, devicePath string) error &#123;</span><br><span class="line">	显示设置isAttached为true. 即触发</span><br><span class="line">	_, err := asw.AddVolumeNode(uniqueName, volumeSpec, nodeName, devicePath, true)</span><br><span class="line">	return err</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (asw *actualStateOfWorld) AddVolumeNode(uniqueName v1.UniqueVolumeName, volumeSpec *volume.Spec, ...) (v1.UniqueVolumeName, error) &#123;</span><br><span class="line">	volumeName := uniqueName</span><br><span class="line">	</span><br><span class="line">	// 如果卷名为空，则生成一个</span><br><span class="line">	if volumeName == &quot;&quot; &#123;</span><br><span class="line">		// 必须要有pv信息，因为后面流程获取volume name要用到，所以强制检查</span><br><span class="line">		if volumeSpec == nil &#123;</span><br><span class="line">			return volumeName, fmt.Errorf(&quot;volumeSpec cannot be nil if volumeName is empty&quot;)</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">	    // 命名规则是plugin name + volume name.</span><br><span class="line">	    // 对于csi插件就是&quot;kubernetes.io/csi...&quot;</span><br><span class="line">	    // fetches a persistent volume plugin by spec.</span><br><span class="line">		attachableVolumePlugin, err := asw.volumePluginMgr.FindAttachablePluginBySpec(volumeSpec)</span><br><span class="line">		volumeName, err = util.GetUniqueVolumeNameFromSpec(attachableVolumePlugin, volumeSpec)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	// 从asw的attachedVolumes获取node已经attached的卷，如果没有就创建一个volumeObj, 如果之前有就更新devicePath和spec字段。</span><br><span class="line">	volumeObj, volumeExists := asw.attachedVolumes[volumeName]</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line">	// 获取volumeObj卷被attached到的节点对象，没有就创建，之前有的话更新node.attachedConfirmed</span><br><span class="line">	node, nodeExists := volumeObj.nodesAttachedTo[nodeName]</span><br><span class="line">	</span><br><span class="line">	// 将上面生成的node和volumeObj对象，更新到asw的attachedVolumes</span><br><span class="line">	volumeObj.nodesAttachedTo[nodeName] = node</span><br><span class="line">	asw.attachedVolumes[volumeName] = volumeObj</span><br><span class="line">	</span><br><span class="line">	// 卷和node确定绑定关系，则确认volume已经attached了</span><br><span class="line">	if isAttached &#123;</span><br><span class="line">		asw.addVolumeToReportAsAttached(volumeName, nodeName)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>asw中卷分成已经attachedVolume和其他,肯定是个map &#x3D;&gt; <code>asw.attachedVolumes</code><br>对于attached的卷，需要记录被<code>attach to</code>哪个节点, 也是个map &#x3D;&gt; <code>volumeObj.nodesAttachedTo</code></p>
+<p>isAttached若为true, 表卷已经被attach到节点；若为false, volume绑定到该node还不确定，即绑定可能发生更改</p>
+<p>volumeSpec里包含很多重要信息，volumeName卷名，volume plugin的信息，plugin name，比如csi, nfs,  plugin是否是attachable</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">func (asw *actualStateOfWorld) addVolumeToReportAsAttached(</span><br><span class="line">	volumeName v1.UniqueVolumeName, nodeName types.NodeName) &#123;</span><br><span class="line"></span><br><span class="line">    // 确保asw的nodesToUpdateStatusFor中要更新的node及volume信息是期望的。</span><br><span class="line"></span><br><span class="line">	nodeToUpdate, nodeToUpdateExists := asw.nodesToUpdateStatusFor[nodeName]</span><br><span class="line">	</span><br><span class="line">	_, nodeToUpdateVolumeExists := nodeToUpdate.volumesToReportAsAttached[volumeName]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该方法最重要的是更新<code>asw.nodesToUpdateStatusFor</code>属性。<br>命名规则<code>xToxxx</code>值得学习, 即x要去做xxx, 核心是没有去做</p>
+<ul>
+<li>addVolumeToReportAsAttached： 将volume上报为attached</li>
+<li>nodesToUpdateStatusFor: node要去更新它的status字段</li>
+<li>nodeToUpdate： node对象要去更新的部分</li>
+</ul>
+<p>将node写入到asw的<code>nodesToUpdateStatusFor</code>field后如何处理呢？<br>答案是在asw对象的<code>GetVolumesToReportAttached()</code>方法完成</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">func (nsu *nodeStatusUpdater) UpdateNodeStatuses() error &#123;</span><br><span class="line">    // 获取asw.nodesToUpdateStatusFor字段</span><br><span class="line">    nodesToUpdate := nsu.actualStateOfWorld.GetVolumesToReportAttached()</span><br><span class="line">    for nodeName, attachedVolumes := range nodesToUpdate &#123;</span><br><span class="line">    </span><br><span class="line">        if err := asw.updateNodeStatusUpdateNeeded(nodeName, false); err != nil &#123;</span><br><span class="line">		    klog.Errorf(&quot;Failed to update statusUpdateNeeded field when getting volumes: %v&quot;, err)</span><br><span class="line">		&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (nsu *nodeStatusUpdater) UpdateNodeStatuses() error &#123;</span><br><span class="line">    // 遍历nodesToUpdateStatusFor域，map结构， key是node， value是attachedVolumes</span><br><span class="line"></span><br><span class="line">	nodesToUpdate := nsu.actualStateOfWorld.GetVolumesToReportAttached()</span><br><span class="line">	for nodeName, attachedVolumes := range nodesToUpdate &#123;</span><br><span class="line">	    ...</span><br><span class="line">	    if err := nsu.updateNodeStatus(nodeName, nodeObj, attachedVolumes); err != nil &#123;</span><br><span class="line">	        ...</span><br><span class="line">	    &#125;</span><br><span class="line">	&#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (nsu *nodeStatusUpdater) updateNodeStatus(nodeName types.NodeName, nodeObj *v1.Node, attachedVolumes []v1.AttachedVolume) error &#123;</span><br><span class="line">	node := nodeObj.DeepCopy()</span><br><span class="line">	// 将attached到该节点上的volume更新在node.status.VolumesAttached上</span><br><span class="line">	node.Status.VolumesAttached = attachedVolumes</span><br><span class="line">	// 调用client-go node的patch方法完成持久化</span><br><span class="line">	_, patchBytes, err := nodeutil.PatchNodeStatus(nsu.kubeClient.CoreV1(), nodeName, nodeObj, node)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	klog.V(4).Infof(&quot;Updating status %q for node %q succeeded. VolumesAttached: %v&quot;, patchBytes, nodeName, attachedVolumes)</span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当我们将要更新的卷及node信息写入asw后就返回了<br>在reconciler.reconcile方法种，会调用GetVolumesToReportAttached获取node要更新的部分，然后调用patchnode方法，更新node对象。</p>
+<p>asw和dsw分别将关心的数据记录到各自对象缓存种，最后reconciler将调谐aws和dsw.</p>
+<p>小结：</p>
+<ol>
+<li>该流程是将持久化到etcd的node.status上的attached的volume和在控制器内存中的asw.attachedVolumes进行对齐，如果该步骤出现问题，后面步骤不会进行。避免控制器面与集群真实不一致。从而避免出现管理混乱的局面</li>
+<li>在整个流程处理完后，会将特定node上attachedVolume通过<code>updateNodeStatus()</code>重新更新到etcd，表明是经过本次reconcile 调谐过的了。</li>
+</ol>
+<h4 id="processVolumesInUse"><a href="#processVolumesInUse" class="headerlink" title="processVolumesInUse"></a>processVolumesInUse</h4><p>将Node’s Status.VolumesInUse中的卷更新，表示已经mounted状态。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">func (adc *attachDetachController) processVolumesInUse(</span><br><span class="line">	nodeName types.NodeName, volumesInUse []v1.UniqueVolumeName) &#123;</span><br><span class="line">	</span><br><span class="line">	// 对于每一个attached到本node的卷</span><br><span class="line">	for _, attachedVolume := range adc.actualStateOfWorld.GetAttachedVolumesForNode(nodeName) &#123;</span><br><span class="line">	    检查是否mount了，即如果在volumeInUse中有，表示mounted了</span><br><span class="line">		mounted := false</span><br><span class="line">		for _, volumeInUse := range volumesInUse &#123;</span><br><span class="line">			if attachedVolume.VolumeName == volumeInUse &#123;</span><br><span class="line">				mounted = true</span><br><span class="line">				break</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	    // 设置卷的MountedByNode属性为true, 表明该volume被attached到该节点其已经被mounted的，做detach是不安全的</span><br><span class="line">		err := adc.actualStateOfWorld.SetVolumeMountedByNode(attachedVolume.VolumeName, nodeName, mounted)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>小结：</p>
+<ol>
+<li>管理asw中volume被attached到某个节点，其是否被使用， 即是否mounted</li>
+</ol>
+<p>疑问</p>
+<ol>
+<li>node.Status.VolumesInUse是在哪里被设置的？</li>
+<li>volumesInUse中存在但是在attachedVolume中不存在的怎么处理，当前逻辑是不会管理到的</li>
+</ol>
+<h4 id="addNodeToDswp"><a href="#addNodeToDswp" class="headerlink" title="addNodeToDswp"></a>addNodeToDswp</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">func (adc *attachDetachController) addNodeToDswp(node *v1.Node, nodeName types.NodeName) &#123;</span><br><span class="line"></span><br><span class="line">    // 如果是controller-manager, attach/detach管理，该值为false。不运行的pod，volume也没必要存在</span><br><span class="line">	if _, exists := node.Annotations[volumeutil.ControllerManagedAttachAnnotation]; exists &#123;</span><br><span class="line">		keepTerminatedPodVolumes := false</span><br><span class="line">    // 如果显示设置，则按实际设置的来</span><br><span class="line">	if t, ok := node.Annotations[volumeutil.KeepTerminatedPodVolumesAnnotation]; ok &#123;</span><br><span class="line">			keepTerminatedPodVolumes = (t == &quot;true&quot;)</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">	// Node specifies annotation indicating it should be managed by attach</span><br><span class="line">	// detach controller. Add it to desired state of world.</span><br><span class="line">	adc.desiredStateOfWorld.AddNode(nodeName, keepTerminatedPodVolumes)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line">func (dsw *desiredStateOfWorld) AddNode(nodeName k8stypes.NodeName, keepTerminatedPodVolumes bool) &#123;</span><br><span class="line">	dsw.Lock()</span><br><span class="line">	defer dsw.Unlock()</span><br><span class="line"></span><br><span class="line">	if _, nodeExists := dsw.nodesManaged[nodeName]; !nodeExists &#123;</span><br><span class="line">		dsw.nodesManaged[nodeName] = nodeManaged&#123;</span><br><span class="line">			nodeName:                 nodeName,</span><br><span class="line">			volumesToAttach:          make(map[v1.UniqueVolumeName]volumeToAttach),</span><br><span class="line">			keepTerminatedPodVolumes: keepTerminatedPodVolumes,</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>该方法比较简单，仅保证asw中的node添加到dsw的nodesManaged map中，asw有的要对齐到dsw中。</p>
+<p>keepTerminatedPodVolumes字段，为true 表示对于terminatedPod中的volume不进行umount和detach。</p>
+<p>如何判断pod是terminated pod?</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// IsPodTerminated checks if pod is terminated</span><br><span class="line">func IsPodTerminated(pod *v1.Pod, podStatus v1.PodStatus) bool &#123;</span><br><span class="line">	return podStatus.Phase == v1.PodFailed || podStatus.Phase == v1.PodSucceeded || (pod.DeletionTimestamp != nil &amp;&amp; notRunning(podStatus.ContainerStatuses))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>podStatus.Phase</p>
+<ul>
+<li>v1.PodSucceeded, pod中的容器都运行完了，退出码是0</li>
+<li>v1.PodFailed， 有一个容器退出码是非0.</li>
+</ul>
+<p>pod.DeletionTimestamp !&#x3D; nil &amp;&amp; notRunning(podStatus.ContainerStatuses)<br>pod要被删除并且pod没有在运行态</p>
+<p>pod running?</p>
+<pre><code>func notRunning(statuses []v1.ContainerStatus) bool &#123;
+    for _, status := range statuses &#123;
+        if status.State.Terminated == nil &amp;&amp; status.State.Waiting == nil &#123;
+            return false
+        &#125;
+    &#125;
+    return true
+&#125;
+
+pod默认状态是not running, 但
+只要pod中有一个容器没给出结果（没有更新Terminated且也没有更新Waiting），我们就认为pod是running的。
+
+
+小结：
+
+populateasw是根据实际状态，也就是node对象上的volumesAttached和volumesInUse实际状态，并结合etcd中的最新状态，来维护asw对象中volume、node绑定及使用情况
+</code></pre>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                
+                
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/volumes/"># volumes</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2023/05/08/ns%E7%9A%84%E5%85%8B%E6%98%9F-nsenter/">ns的克星-nsenter</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Mingeer | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>
