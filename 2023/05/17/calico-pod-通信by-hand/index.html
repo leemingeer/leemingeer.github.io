@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Mingeer">
+
+
+
+
+
+<title>calico pod 通信by hand | Mingeer</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Ming&#39;s Time</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Ming&#39;s Time</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">calico pod 通信by hand</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Mingeer</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">May 17, 2023&nbsp;&nbsp;1:07:26</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/kubernetes/">kubernetes</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h1 id="calico-pod-通信by-hand"><a href="#calico-pod-通信by-hand" class="headerlink" title="calico pod 通信by hand"></a>calico pod 通信by hand</h1><p>当我们将<code>mycni</code>的<code>binary</code>和<code>conf</code>放到节点的目录下时，pod从 pending变为running状态</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/opt/cni/bin/mycni</span><br><span class="line">/etc/cni/net.d/00-mycni.conflist</span><br></pre></td></tr></table></figure>
+
+<h1 id="calico"><a href="#calico" class="headerlink" title="calico"></a>calico</h1><p>集群采用了calico插件</p>
+<h3 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">// </span><br><span class="line">  containers:</span><br><span class="line">  - image: harbor.archeros.cn:443/library/ake/calico/node:v3.18.0-arm64</span><br><span class="line">    env:</span><br><span class="line">    - name: IP_AUTODETECTION_METHOD</span><br><span class="line">      value: interface=data</span><br><span class="line"></span><br><span class="line">    - name: CALICO_NETWORKING_BACKEND</span><br><span class="line">      valueFrom:</span><br><span class="line">        configMapKeyRef:</span><br><span class="line">          key: calico_backend</span><br><span class="line">          name: calico-config</span><br><span class="line">          </span><br><span class="line">    - name: CALICO_IPV4POOL_IPIP</span><br><span class="line">      value: Always</span><br><span class="line">    - name: CALICO_IPV4POOL_VXLAN</span><br><span class="line">      value: Never</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="IPPool对象"><a href="#IPPool对象" class="headerlink" title="IPPool对象"></a>IPPool对象</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># calicoctl get ippool default-ipv4-ippool -o yaml</span><br><span class="line">apiVersion: projectcalico.org/v3</span><br><span class="line">kind: IPPool</span><br><span class="line">metadata:</span><br><span class="line">  creationTimestamp: &quot;2023-05-08T02:48:58Z&quot;</span><br><span class="line">  name: default-ipv4-ippool</span><br><span class="line">  resourceVersion: &quot;421083&quot;</span><br><span class="line">  uid: 28cf34ae-d5e4-4efd-b8a2-67ae7917412f</span><br><span class="line">spec:</span><br><span class="line">  blockSize: 26</span><br><span class="line">  cidr: 10.244.0.0/16</span><br><span class="line">  ipipMode: Always</span><br><span class="line">  natOutgoing: true</span><br><span class="line">  nodeSelector: all()</span><br><span class="line">  vxlanMode: Never</span><br></pre></td></tr></table></figure>
+<ol>
+<li>cidr需要和<code>kube-controller-manager --cluster-cidr=10.244.0.0/16</code>保持一致</li>
+<li>ipipMode和vxlanMode均为Never即BGP模式</li>
+</ol>
+<h2 id="pod中默认路由"><a href="#pod中默认路由" class="headerlink" title="pod中默认路由"></a>pod中默认路由</h2><p>进入到pod中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"># kubectl get pod -o wide</span><br><span class="line">NAME                          READY   STATUS    RESTARTS   AGE   IP            NODE      NOMINATED NODE   READINESS GATES</span><br><span class="line">my-busybox-68dc44bf88-j7scp   1/1     Running   0          24m   10.10.50.4    master4   &lt;none&gt;           &lt;none&gt;</span><br><span class="line">my-busybox-68dc44bf88-qhpss   1/1     Running   0          24m   10.10.50.16   master1   &lt;none&gt;           &lt;none&gt;</span><br><span class="line"></span><br><span class="line"># kubectl exec  -it my-busybox-68dc44bf88-qhpss sh</span><br><span class="line"># ip a</span><br><span class="line">3: eth0@if17: &lt;BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN&gt; mtu 1500 qdisc noqueue</span><br><span class="line">    link/ether 12:ca:8c:21:5a:c4 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 10.10.50.16/32 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::10ca:8cff:fe21:5ac4/64 scope link</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">查看pod中路由</span><br><span class="line">/ # ip r</span><br><span class="line">default via 169.254.1.1 dev eth0</span><br><span class="line">169.254.1.1 dev eth0 scope link</span><br><span class="line"></span><br><span class="line">查看arp表</span><br><span class="line">/ # ip neigh</span><br><span class="line">169.254.1.1 dev eth0 lladdr ee:ee:ee:ee:ee:ee used 0/0/0 probes 1 STALE</span><br><span class="line">178.104.227.4 dev eth0 lladdr ee:ee:ee:ee:ee:ee used 0/0/0 probes 0 STALE</span><br></pre></td></tr></table></figure>
+
+<p>pod内网口ip:<code>10.10.50.16/32</code>是32位的，不与任何机器同网络，强制走纯三层的路由。pod中访问默认路由<code>169.254.1.1</code>，请求其mac，根据本地arp表，返回网关mac是全e。其实这mac是veth peer（host侧），请求在二层到达host侧网口。</p>
+<p>pod中的默认路由是<code>169.254.1.1</code> 它不是任何网卡的的地址。但是它是有特殊作用的。<br>当pod访问外部地址时，总是会去访问默认路由<code>169.254.1.1</code>，发出arp广播，在host侧对应的<code>veth87f321fcac1 vethpair</code>网卡会收到，并且开启了arp代码功能，返回自己的mac地址，从而将pod发出的流量引到host侧的<code>calixxx</code>veth。<br>流量达到host上后，根据本地路由表走流量了。</p>
+<p>在做路由寻址的时候，ip层不变，应该只是src&#x2F;dst mac根据出网口而替换，退化成二层通信。</p>
+<p>在host侧对应的eth口</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">17: veth87f321fcac1@if3: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default</span><br><span class="line">    link/ether ee:ee:ee:ee:ee:ee brd ff:ff:ff:ff:ff:ff link-netns cni-4609f7ab-b55d-077d-c455-3d32c5a7b655</span><br><span class="line">    inet6 fe80::ecee:eeff:feee:eeee/64 scope link</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line"># cat /proc/sys/net/ipv4/conf/veth87f321fcac1/proxy_arp</span><br><span class="line">1</span><br></pre></td></tr></table></figure>
+<p>网卡开启arp代答，指可以让其他设备（pod中默认网关）待自己回答mac。</p>
+<h3 id="calico-pod-host通信手动模拟"><a href="#calico-pod-host通信手动模拟" class="headerlink" title="calico pod-host通信手动模拟"></a>calico pod-host通信手动模拟</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"># 开始路由转发，本机当做路由器使用</span><br><span class="line">cat &gt; /etc/sysctl.d/30-ipforward.conf&lt;&lt;EOL</span><br><span class="line">net.ipv4.ip_forward=1</span><br><span class="line">net.ipv6.conf.default.forwarding=1</span><br><span class="line">net.ipv6.conf.all.forwarding=1</span><br><span class="line">EOL</span><br><span class="line">sysctl -p /etc/sysctl.d/30-ipforward.conf</span><br><span class="line"></span><br><span class="line"># host侧配置</span><br><span class="line">ip netns add ns3</span><br><span class="line">ip link add tap3 type veth peer name veth1 netns ns3</span><br><span class="line">ip link set address ee:ee:ee:ee:ee:ee dev tap3  // 定制peer eth的mac</span><br><span class="line">echo 1 &gt; /proc/sys/net/ipv4/conf/tap3/proxy_arp</span><br><span class="line">ip link set tap3 up</span><br><span class="line">ip r a 10.42.1.13 dev tap3  // 确定mac</span><br><span class="line"></span><br><span class="line"># pod侧配置</span><br><span class="line">ip netns exec ns3 ip addr add 10.42.1.13/32 dev veth1</span><br><span class="line">ip netns exec ns3 ip route add 169.254.1.1 dev veth1 // 网络路由</span><br><span class="line">ip netns exec ns3 ip route add default via 169.254.1.1 dev veth1  // 默认路由</span><br><span class="line">ip netns exec ns3 ip neigh add 169.254.1.1 dev veth1 lladdr ee:ee:ee:ee:ee:ee</span><br><span class="line">ip netns exec ns3 ip link set veth1 up</span><br><span class="line"></span><br><span class="line">#从host ping pod网卡</span><br><span class="line">ping 10.42.1.13</span><br><span class="line">PING 10.42.1.13 (10.42.1.13) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.42.1.13: icmp_seq=1 ttl=64 time=48.7 ms</span><br><span class="line"></span><br><span class="line"># 从pod网卡ping host</span><br><span class="line">ip netns exec ns3 ping 178.104.163.26</span><br><span class="line">PING 178.104.163.26 (178.104.163.26) 56(84) bytes of data.</span><br><span class="line">64 bytes from 178.104.163.26: icmp_seq=1 ttl=64 time=0.196 ms</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="calico-node间通信"><a href="#calico-node间通信" class="headerlink" title="calico node间通信"></a>calico node间通信</h2><p>node间通信分成同网络和跨网络两种，区别就是tunl0 via指定的下一跳地址。</p>
+<ol>
+<li>同网络，下一跳就是peer node</li>
+<li>跨网络，下一跳就是可以达到peer host的本机网卡</li>
+</ol>
+<p>下面以跨节点跨网络的场景分析</p>
+<h3 id="跨节点跨网络路由分析"><a href="#跨节点跨网络路由分析" class="headerlink" title="跨节点跨网络路由分析"></a>跨节点跨网络路由分析</h3><p>data表示vm（k8s部署在vm中）中网卡，从该网卡出的包会经过底层的<code>vrouter</code>控制面进行转发, 找到正确的出网口，在vrouter中，目标设置是在other nodes, 本节点的vrouter包会转发到其他节点的vrouter，从而找到正确的出网口。</p>
+<p>在本节点vm中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"># ip a s data</span><br><span class="line">4: data: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1450 qdisc fq_codel state UP group default qlen 1000</span><br><span class="line">    link/ether fa:16:b2:76:e8:07 brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 178.118.232.7/24 brd 178.118.232.255 scope global noprefixroute data</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line"></span><br><span class="line"># ip r</span><br><span class="line">default via 178.118.230.1 dev eth0 proto dhcp metric 100</span><br><span class="line"></span><br><span class="line">// pod目标网段表明pod在其他机器，下一跳是178.118.232.x（虚拟ip，仅起辅助路由作用）, 从tunl0出， tunl0进行ipip封装，via所指地址是出包的外层ip</span><br><span class="line">10.244.36.192/26 via 178.118.232.191 dev tunl0 proto bird onlink</span><br><span class="line">10.244.57.64/26 via 178.118.232.35 dev tunl0 proto bird onlink</span><br><span class="line">10.244.136.0/26 via 178.118.232.7 dev tunl0 proto bird onlink</span><br><span class="line">10.244.137.64/26 via 178.118.232.221 dev tunl0 proto bird onlink</span><br><span class="line">10.244.166.128/26 via 178.118.232.198 dev tunl0 proto bird onlink</span><br><span class="line">10.244.175.64/26 via 178.118.232.63 dev tunl0 proto bird onlink</span><br><span class="line">// 经tunl ipip封装后的包会报该条路由，从本机的data网卡出去</span><br><span class="line">178.118.232.0/24 dev data proto kernel scope link src 178.118.232.148 metric 102</span><br><span class="line"></span><br><span class="line">blackhole 10.244.180.0/26 proto bird</span><br><span class="line">// 全是本机pod的ip，32位， 在本机可以</span><br><span class="line">10.244.180.4 dev cali97a0a28d8e4 scope link</span><br><span class="line">10.244.180.10 dev cali119b29c78fc scope link</span><br><span class="line">10.244.180.15 dev cali15c7619fccc scope link</span><br><span class="line">10.244.180.16 dev cali8ece1094b64 scope link</span><br><span class="line">10.244.180.17 dev cali17c27a1ff33 scope link</span><br><span class="line">10.244.180.20 dev caliaeb7f8a6c25 scope link</span><br><span class="line">10.244.180.27 dev cali90e4a410491 scope link</span><br><span class="line">10.244.180.32 dev cali1abad8afd57 scope link</span><br><span class="line">10.244.180.35 dev cali1bff4958e4e scope link</span><br><span class="line">10.244.180.48 dev cali6c3bcfc264e scope link</span><br><span class="line">10.244.180.55 dev cali1ad0b3407f2 scope link</span><br><span class="line">10.244.180.58 dev calibbb6448fd94 scope link</span><br><span class="line">172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown</span><br><span class="line">178.118.230.0/24 dev eth0 proto kernel scope link src 178.118.230.223 metric 100</span><br><span class="line">178.118.231.0/24 dev eth1 proto kernel scope link src 178.118.231.238 metric 101</span><br><span class="line">178.118.232.0/24 dev data proto kernel scope link src 178.118.232.148 metric 102</span><br><span class="line"></span><br><span class="line"># ip a s tunl0</span><br><span class="line">10: tunl0@NONE: &lt;NOARP,UP,LOWER_UP&gt; mtu 1430 qdisc noqueue state UNKNOWN group default qlen 1000</span><br><span class="line">    link/ipip 0.0.0.0 brd 0.0.0.0</span><br><span class="line">    inet 10.244.180.11/32 scope global tunl0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br></pre></td></tr></table></figure>
+<p>疑问：</p>
+<ol>
+<li><p>下一跳地址（178.118.232.x）应该和出网口tunl0是同网络的吧，本环境竟然不同网络？<br>Ans: tunl0这个接口 没有ARP，所以没有同子网的限制, 发往它的包全部接收，而且因为是ipip封装，封装后的包的外层dst ip会被封装为via所指地址，再在本机路由</p>
+</li>
+<li><p>下一跳地址要是同网络应该就一个就可以，这环境为啥有好多个（178.118.232.x）<br>Ans: 如果有多条等效路径访问目的地，则会使用 ECMP (Equal Cost Multipath) 协议，它可以将流量分配到不同的路径上以实现负载均衡和冗余性。在这种情况下，会有多个下一跳地址</p>
+</li>
+</ol>
+<p>路由分析：</p>
+<ul>
+<li>scope link：在同一网络中的设备间通信，表示添加的这个路由只适用于与<code>dev calixxx</code> 接口直接相连的设备，而不会被发送到其他网络或路由器上。这通常用于将数据包限制在本地链路层范围内，以减少网络流量和提高安全性</li>
+<li>proto dhcp: 路由器会向 DHCP 服务器请求一个可用的 IP 地址，并将该 IP 地址分配给本地网络接口，从而使设备能够访问网络和外部互联网</li>
+<li>proto kernel:  Linux内核自带的路由协议, 系统会将内部的路由信息导入到路由表中，并且允许用户对这些路由进行配置和操作, 如从<code>docker0</code>、<code>enp1s0</code>两张网卡出的路由。</li>
+</ul>
+<p>tunl0作为ipinip封装网口，封装后，总data网卡出去，就是sdn vrouter 在vm侧的tap设备</p>
+<h3 id="ns角度"><a href="#ns角度" class="headerlink" title="ns角度"></a>ns角度</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">master2# ip netns list</span><br><span class="line">cni-9cabc924-357e-2fed-0d21-4154a358a505 (id: 11)</span><br><span class="line">cni-d5810fa6-d845-0aee-82d3-7352c89a0574 (id: 3)</span><br><span class="line">cni-c3170d7f-4ae5-c3c0-18f9-06ada858cd94 (id: 0)</span><br><span class="line"></span><br><span class="line"># ip netns exec cni-9cabc924-357e-2fed-0d21-4154a358a505 sh</span><br><span class="line">sh-4.2# ip a</span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 ::1/128 scope host</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">2: tunl0@NONE: &lt;NOARP&gt; mtu 1480 qdisc noop state DOWN group default qlen 1000</span><br><span class="line">    link/ipip 0.0.0.0 brd 0.0.0.0</span><br><span class="line">4: eth0@if534613: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1430 qdisc noqueue state UP group default</span><br><span class="line">    link/ether 6a:4a:f8:11:04:cb brd ff:ff:ff:ff:ff:ff link-netnsid 0</span><br><span class="line">    inet 10.244.180.32/32 brd 10.244.180.32 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::684a:f8ff:fe11:4cb/64 scope link</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">sh-4.2# exit</span><br><span class="line">exit</span><br><span class="line">[root@master2 ~]# kubectl get pod -A -o wide |grep 10.244.180.32</span><br><span class="line">monitoring       prometheus-k8s-1                                                  3/3     Running   1 (151m ago)    151m    10.244.180.32     master2   &lt;none&gt;           &lt;none&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="SDN-vrouter-转发"><a href="#SDN-vrouter-转发" class="headerlink" title="SDN vrouter 转发"></a>SDN vrouter 转发</h2><p>跨节点流量从data出vm后，本机的vrouter会查询其路由表确定出网口，如果本机没有，则将包转发到其他节点的vrouter进行查询，从而实现跨节点通信。</p>
+<p><code>vrouter</code>名字可以看出，还是基于路由规则去寻找出口。</p>
+<h3 id="跨节点同网络手动模拟"><a href="#跨节点同网络手动模拟" class="headerlink" title="跨节点同网络手动模拟"></a>跨节点同网络手动模拟</h3><p>依赖bird实现节点路由分发</p>
+<h4 id="bird"><a href="#bird" class="headerlink" title="bird"></a>bird</h4><p>BIRD（BIRD Internet Routing Daemon）是一款可运行在Linux和其他类Unix系统上的路由软件，它实现了多种路由协议，比如BGP、OSPF、RIP等。</p>
+<p>BIRD会在内存中维护许多路由表，路由表根据不同的协议，通过交换路由信息，来更新路由规则。</p>
+<p>Calico使用BGP协议对各节点的容器网络进行路由交换。<br>Calico中使用的软件BGP方案是Bird， 而且仅起到一个管理路由表的作用<br>calico bird是在bird基础上进行了封装，额外增加了<code>IP-in-IP</code>模式下的路由功能</p>
+<p>每个节点均下载安装bird</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">docker pull calico/node:v3.11.1</span><br><span class="line">docker run --name calico-temp -d calico/node:v3.11.1 sleep 200</span><br><span class="line">docker cp calico-temp:/usr/bin/bird ./</span><br><span class="line">docker cp calico-temp:/usr/bin/bird6 ./</span><br><span class="line">docker cp calico-temp:/usr/bin/birdcl ./</span><br><span class="line">docker stop calico-temp</span><br><span class="line">docker rm calico-temp</span><br><span class="line">chmod +x /usr/local/sbin/bird*</span><br></pre></td></tr></table></figure>
+<p>配置BIRD</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line">mkdir /etc/bird-cfg/</span><br><span class="line"></span><br><span class="line">cat &gt; /etc/bird-cfg/bird.cfg &lt;&lt; EOL</span><br><span class="line">protocol static &#123;</span><br><span class="line">   # IP blocks for this host.  // bird会生成两条路有，这是blackhole的一条。</span><br><span class="line">   route 10.42.1.0/24 blackhole; </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># Aggregation of routes on this host; export the block, nothing beneath it.</span><br><span class="line">function calico_aggr ()</span><br><span class="line">&#123;</span><br><span class="line">      # Block 10.42.1.0/24 is confirmed</span><br><span class="line">      if ( net = 10.42.1.0/24 ) then &#123; accept; &#125;</span><br><span class="line">      if ( net ~ 10.42.1.0/24 ) then &#123; reject; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">filter calico_export_to_bgp_peers &#123;</span><br><span class="line">  calico_aggr();</span><br><span class="line">  if ( net ~ 10.42.0.0/16 ) then &#123;</span><br><span class="line">    accept;</span><br><span class="line">  &#125;</span><br><span class="line">  reject;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">filter calico_kernel_programming &#123;</span><br><span class="line">  if ( net ~ 10.42.0.0/16 ) then &#123;</span><br><span class="line">    krt_tunnel = &quot;tunl0&quot;;</span><br><span class="line">    accept;</span><br><span class="line">  &#125;</span><br><span class="line">  accept;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">router id 10.211.55.5;</span><br><span class="line"></span><br><span class="line"># Configure synchronization between routing tables and kernel.</span><br><span class="line">protocol kernel &#123;</span><br><span class="line">  learn;             # Learn all alien routes from the kernel</span><br><span class="line">  persist;           # Don&#x27;t remove routes on bird shutdown</span><br><span class="line">  scan time 2;       # Scan kernel routing table every 2 seconds</span><br><span class="line">  import all;</span><br><span class="line">  export filter calico_kernel_programming; # Default is export none</span><br><span class="line">  graceful restart;  # Turn on graceful restart to reduce potential flaps in</span><br><span class="line">                     # routes when reloading BIRD configuration.  With a full</span><br><span class="line">                     # automatic mesh, there is no way to prevent BGP from</span><br><span class="line">                     # flapping since multiple nodes update their BGP</span><br><span class="line">                     # configuration at the same time, GR is not guaranteed to</span><br><span class="line">                     # work correctly in this scenario.</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># Watch interface up/down events.</span><br><span class="line">protocol device &#123;</span><br><span class="line">  debug all;</span><br><span class="line">  scan time 2;    # Scan interfaces every 2 seconds</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">protocol direct &#123;</span><br><span class="line">  debug all;</span><br><span class="line">  interface -&quot;tap*&quot;, &quot;*&quot;; # Exclude tap* but include everything else.</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># Template for all BGP clients</span><br><span class="line">template bgp bgp_template &#123;</span><br><span class="line">  debug all;</span><br><span class="line">  description &quot;Connection to BGP peer&quot;;</span><br><span class="line">  local as 64512;</span><br><span class="line">  multihop;</span><br><span class="line">  gateway recursive; # This should be the default, but just in case.</span><br><span class="line">  import all;        # Import all routes, since we don&#x27;t know what the upstream</span><br><span class="line">                     # topology is and therefore have to trust the ToR/RR.</span><br><span class="line">  export filter calico_export_to_bgp_peers;  # Only want to export routes for workloads.</span><br><span class="line">  source address 10.211.55.5;  # The local address we use for the TCP connection</span><br><span class="line">  add paths on;</span><br><span class="line">  graceful restart;  # See comment in kernel section about graceful restart.</span><br><span class="line">  connect delay time 2;</span><br><span class="line">  connect retry time 5;</span><br><span class="line">  error wait time 5,30;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">protocol bgp Mesh_10_211_55_6 from bgp_template &#123;</span><br><span class="line">  neighbor 10.211.55.6 as 64512;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+
+<p>下面是各个节点的配置</p>
+<p>节点<code>178.104.163.104</code>配置</p>
+<p>环境预准备</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cat &gt; /etc/sysctl.d/30-ipforward.conf&lt;&lt;EOL</span><br><span class="line">net.ipv4.ip_forward=1</span><br><span class="line">net.ipv6.conf.default.forwarding=1</span><br><span class="line">net.ipv6.conf.all.forwarding=1</span><br><span class="line">EOL</span><br><span class="line">sysctl -p /etc/sysctl.d/30-ipforward.conf</span><br></pre></td></tr></table></figure>
+<p>配置host和pod通信网络</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">ip netns add ns1</span><br><span class="line">ip netns add ns2</span><br><span class="line"></span><br><span class="line">ip link add tap1 type veth peer name veth1 netns ns1</span><br><span class="line">ip link add tap2 type veth peer name veth1 netns ns2</span><br><span class="line"></span><br><span class="line">ip l set address ee:ee:ee:ee:ee:ee dev tap1</span><br><span class="line">ip l set address ee:ee:ee:ee:ee:ee dev tap2</span><br><span class="line"></span><br><span class="line">echo 1 &gt; /proc/sys/net/ipv4/conf/tap1/proxy_arp</span><br><span class="line">echo 1 &gt; /proc/sys/net/ipv4/conf/tap2/proxy_arp</span><br><span class="line"></span><br><span class="line">ip link set tap1 up</span><br><span class="line">ip link set tap2 up</span><br><span class="line"></span><br><span class="line">ip r a 10.42.1.11 dev tap1</span><br><span class="line">ip r a 10.42.1.12 dev tap2</span><br><span class="line"></span><br><span class="line">ip netns exec ns1 ip addr add 10.42.1.11/32 dev veth1</span><br><span class="line">ip netns exec ns2 ip addr add 10.42.1.12/32 dev veth1</span><br><span class="line"></span><br><span class="line">ip netns exec ns1 ip link set veth1 up</span><br><span class="line">ip netns exec ns2 ip link set veth1 up</span><br><span class="line"></span><br><span class="line">ip netns exec ns1 ip link set lo up</span><br><span class="line">ip netns exec ns2 ip link set lo up</span><br><span class="line"></span><br><span class="line">ip netns exec ns1 ip route add 169.254.1.1 dev veth1</span><br><span class="line">ip netns exec ns2 ip route add 169.254.1.1 dev veth1</span><br><span class="line"></span><br><span class="line">ip netns exec ns1 ip route add default via 169.254.1.1 dev veth1 </span><br><span class="line">ip netns exec ns2 ip route add default via 169.254.1.1 dev veth1</span><br><span class="line"></span><br><span class="line">ip netns exec ns1 ip neigh add 169.254.1.1 dev veth1 lladdr ee:ee:ee:ee:ee:ee </span><br><span class="line">ip netns exec ns2 ip neigh add 169.254.1.1 dev veth1 lladdr ee:ee:ee:ee:ee:ee</span><br></pre></td></tr></table></figure>
+<p>跨节点通信需要知道<code>peer node</code>路由，手动配置是不现实的，calico使用了<code>bird</code>+<code>felix</code>实现集群节点路由管理。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">modprobe ipip</span><br><span class="line">ip a a 10.42.1.0/32 brd 10.42.1.0 dev tunl0</span><br><span class="line">ip link set tunl0 up</span><br><span class="line">iptables -F</span><br></pre></td></tr></table></figure>
+
+<p>节点<code>178.104.163.28</code>配置</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">cat &gt; /etc/sysctl.d/30-ipforward.conf&lt;&lt;EOL</span><br><span class="line">net.ipv4.ip_forward=1</span><br><span class="line">net.ipv6.conf.default.forwarding=1</span><br><span class="line">net.ipv6.conf.all.forwarding=1</span><br><span class="line">EOL</span><br><span class="line">sysctl -p /etc/sysctl.d/30-ipforward.conf</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">ip netns add ns1</span><br><span class="line">ip netns add ns2</span><br><span class="line"></span><br><span class="line">ip link add tap1 type veth peer name veth1 netns ns1</span><br><span class="line">ip link add tap2 type veth peer name veth1 netns ns2</span><br><span class="line"></span><br><span class="line">ip l set address ee:ee:ee:ee:ee:ee dev tap1</span><br><span class="line">ip l set address ee:ee:ee:ee:ee:ee dev tap2</span><br><span class="line"></span><br><span class="line">echo 1 &gt; /proc/sys/net/ipv4/conf/tap1/proxy_arp</span><br><span class="line">echo 1 &gt; /proc/sys/net/ipv4/conf/tap2/proxy_arp</span><br><span class="line"></span><br><span class="line">ip link set tap1 up</span><br><span class="line">ip link set tap2 up</span><br><span class="line"></span><br><span class="line">ip r a 10.42.2.11 dev tap1</span><br><span class="line">ip r a 10.42.2.12 dev tap2</span><br><span class="line"></span><br><span class="line">ip netns exec ns1 ip addr add 10.42.2.11/32 dev veth1</span><br><span class="line">ip netns exec ns2 ip addr add 10.42.2.12/32 dev veth1</span><br><span class="line"></span><br><span class="line">ip netns exec ns1 ip link set veth1 up</span><br><span class="line">ip netns exec ns2 ip link set veth1 up</span><br><span class="line"></span><br><span class="line">ip netns exec ns1 ip link set lo up</span><br><span class="line">ip netns exec ns2 ip link set lo up</span><br><span class="line"></span><br><span class="line">ip netns exec ns1 ip route add 169.254.1.1 dev veth1</span><br><span class="line">ip netns exec ns2 ip route add 169.254.1.1 dev veth1</span><br><span class="line"></span><br><span class="line">ip netns exec ns1 ip route add default via 169.254.1.1 dev veth1 </span><br><span class="line">ip netns exec ns2 ip route add default via 169.254.1.1 dev veth1</span><br><span class="line"></span><br><span class="line">ip netns exec ns1 ip neigh add 169.254.1.1 dev veth1 lladdr ee:ee:ee:ee:ee:ee </span><br><span class="line">ip netns exec ns2 ip neigh add 169.254.1.1 dev veth1 lladdr ee:ee:ee:ee:ee:ee</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">modprobe ipip</span><br><span class="line">ip a a 10.42.2.0/32 brd 10.42.2.0 dev tunl0</span><br><span class="line">ip link set tunl0 up</span><br><span class="line">iptables -F</span><br></pre></td></tr></table></figure>
+
+<p><code>178.104.163.104</code>启动<code>bird</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"># ./bird -R -s /var/run/bird.ctl -d -c /etc/bird-cfg/bird.cfg</span><br><span class="line">bird: device1: Initializing</span><br><span class="line">bird: direct1: Initializing</span><br><span class="line">bird: Mesh_178_104_163_28: Initializing</span><br><span class="line">bird: device1: Starting</span><br><span class="line">bird: device1: Scanning interfaces</span><br><span class="line">bird: device1: Connected to table master</span><br><span class="line">bird: device1: State changed to feed</span><br><span class="line">bird: direct1: Starting</span><br><span class="line">bird: direct1: Connected to table master</span><br><span class="line">bird: direct1: State changed to feed</span><br><span class="line">bird: Mesh_178_104_163_28: Starting</span><br><span class="line">bird: Mesh_178_104_163_28: State changed to start</span><br><span class="line">bird: Graceful restart started</span><br><span class="line">bird: Started</span><br><span class="line">bird: device1: State changed to up</span><br><span class="line">bird: direct1 &lt; interface lo goes up</span><br><span class="line">bird: direct1 &lt; primary address 127.0.0.0/8 on interface lo added</span><br><span class="line">bird: direct1 &lt; interface eth0 goes up</span><br><span class="line">bird: direct1 &lt; primary address 178.104.163.0/24 on interface eth0 added</span><br><span class="line">bird: direct1 &gt; added [best] 178.104.163.0/24 dev eth0</span><br><span class="line">bird: direct1 &lt; interface docker0 goes up</span><br><span class="line">bird: direct1 &lt; primary address 172.17.0.0/16 on interface docker0 added</span><br><span class="line">bird: direct1 &gt; added [best] 172.17.0.0/16 dev docker0</span><br><span class="line">bird: direct1 &lt; interface tunl0 goes up</span><br><span class="line">bird: direct1 &lt; primary address 10.42.1.0/32 on interface tunl0 added</span><br><span class="line">bird: direct1 &gt; added [best] 10.42.1.0/32 dev tunl0</span><br><span class="line">bird: direct1 &lt; interface tap1 created</span><br><span class="line">bird: direct1 &lt; interface tap2 created</span><br><span class="line">bird: direct1 &lt; interface tap3 created</span><br><span class="line">bird: direct1: State changed to up</span><br><span class="line">bird: Mesh_178_104_163_28: Started</span><br><span class="line">bird: Mesh_178_104_163_28: Connect delayed by 2 seconds</span><br><span class="line">bird: Mesh_178_104_163_28: Connecting to 178.104.163.28 from local address 178.104.163.104</span><br><span class="line">bird: device1: Scanning interfaces</span><br><span class="line">// peer node bird还没有启动，所以Connection refused</span><br><span class="line">bird: Mesh_178_104_163_28: Connection lost (Connection refused)</span><br><span class="line">bird: Mesh_178_104_163_28: Connect delayed by 2 seconds</span><br><span class="line">bird: Mesh_178_104_163_28: Connecting to 178.104.163.28 from local address 178.104.163.104</span><br><span class="line">bird: device1: Scanning interfaces</span><br><span class="line">bird: Mesh_178_104_163_28: Connection lost (Connection refused)</span><br><span class="line">bird: Mesh_178_104_163_28: Connect delayed by 2 seconds</span><br><span class="line">bird: Mesh_178_104_163_28: Connecting to 178.104.163.28 from local address 178.104.163.104</span><br><span class="line"></span><br><span class="line">// peer node bird进程启动了</span><br><span class="line">bird: device1: Scanning interfaces</span><br><span class="line">bird: Mesh_178_104_163_28: Connected</span><br><span class="line">bird: Mesh_178_104_163_28: Sending OPEN(ver=4,as=64512,hold=240,id=b268a368)</span><br><span class="line">bird: Mesh_178_104_163_28: Got OPEN(as=64512,hold=240,id=b268a31c)</span><br><span class="line">bird: Mesh_178_104_163_28: Sending KEEPALIVE</span><br><span class="line">bird: Mesh_178_104_163_28: Got KEEPALIVE</span><br><span class="line">bird: Mesh_178_104_163_28: BGP session established</span><br><span class="line">bird: Mesh_178_104_163_28: Connected to table master</span><br><span class="line">bird: Mesh_178_104_163_28: State changed to feed</span><br><span class="line">bird: Mesh_178_104_163_28 &lt; filtered out 0.0.0.0/0 via 178.104.163.1 on eth0</span><br><span class="line">bird: Mesh_178_104_163_28 &lt; filtered out 10.42.1.11/32 dev tap1</span><br><span class="line">bird: Mesh_178_104_163_28 &lt; filtered out 10.42.1.12/32 dev tap2</span><br><span class="line">bird: Mesh_178_104_163_28 &lt; filtered out 10.42.1.13/32 dev tap3</span><br><span class="line">bird: Mesh_178_104_163_28 &lt; added 10.42.1.0/24 blackhole</span><br><span class="line">bird: Mesh_178_104_163_28 &lt; filtered out 10.42.1.0/32 dev tunl0</span><br><span class="line">bird: Mesh_178_104_163_28 &lt; filtered out 178.104.163.0/24 dev eth0</span><br><span class="line">bird: Mesh_178_104_163_28 &lt; filtered out 172.17.0.0/16 dev docker0</span><br><span class="line">bird: Mesh_178_104_163_28: State changed to up</span><br><span class="line">bird: Graceful restart done</span><br><span class="line">bird: Mesh_178_104_163_28: Sending UPDATE</span><br><span class="line">bird: Mesh_178_104_163_28: Sending END-OF-RIB</span><br><span class="line">bird: Mesh_178_104_163_28: Got UPDATE</span><br><span class="line">bird: Mesh_178_104_163_28 &gt; added [best] 10.42.2.0/24 via 178.104.163.28 on eth0</span><br><span class="line">bird: Mesh_178_104_163_28 &lt; rejected by protocol 10.42.2.0/24 via 178.104.163.28 on eth0</span><br><span class="line">bird: Mesh_178_104_163_28: Got UPDATE</span><br><span class="line">bird: Mesh_178_104_163_28: Got END-OF-RIB</span><br><span class="line">bird: device1: Scanning interfaces</span><br><span class="line">bird: device1: Scanning interfaces</span><br><span class="line">bird: device1: Scanning interfaces</span><br><span class="line">bird: device1: Scanning interfaces</span><br><span class="line">bird: device1: Scanning interfaces</span><br><span class="line">bird: device1: Scanning interfaces</span><br><span class="line">一直运行</span><br></pre></td></tr></table></figure>
+
+<p><code>178.104.163.28</code>启动<code>bird</code>是类似的log</p>
+<p>运行bird后，在server1上多了两条路由，因为是同网络下一跳163.28就是server2的网口，如果不是同网络，via将</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># on 178.104.163.104</span><br><span class="line"># diff r2 r1</span><br><span class="line">&lt; blackhole 10.42.1.0/24 proto bird</span><br><span class="line">6d4</span><br><span class="line">&lt; 10.42.2.0/24 via 178.104.163.28 dev tunl0 proto bird onlink</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># on 178.104.163.28</span><br><span class="line"># diff r2 r1</span><br><span class="line">&lt; 10.42.1.0/24 via 178.104.163.104 dev tunl0 proto bird onlink</span><br><span class="line">&lt; blackhole 10.42.2.0/24 proto bird</span><br></pre></td></tr></table></figure>
+<blockquote>
+<ol>
+<li>bird要生成去往对方pod的路由</li>
+<li>两节点上tunl0需要配置正确的ip，broadcase.</li>
+</ol>
+</blockquote>
+<p>验证</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">node1 ns1去ping node2上的pod ip</span><br><span class="line"># ip netns exec ns1 ping 10.42.2.11</span><br><span class="line">PING 10.42.2.11 (10.42.2.11) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.42.2.11: icmp_seq=1 ttl=62 time=1.62 ms</span><br><span class="line">64 bytes from 10.42.2.11: icmp_seq=2 ttl=62 time=1.11 ms</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">node1 ns1 pod ping node2的pod ip</span><br><span class="line"># ip netns exec ns1 ping 10.42.1.11</span><br><span class="line">PING 10.42.1.11 (10.42.1.11) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.42.1.11: icmp_seq=1 ttl=62 time=0.793 ms</span><br><span class="line">64 bytes from 10.42.1.11: icmp_seq=2 ttl=62 time=1.19 ms</span><br><span class="line"></span><br><span class="line">node1 ns1 pod ping node2 eth 不通</span><br><span class="line"># ip netns exec ns1 ping 10.211.55.6</span><br><span class="line">PING 10.211.55.6 (10.211.55.6) 56(84) bytes of data.</span><br><span class="line">^C</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>可以在tunl0及tap设备上抓到包，但是无法在server网口上（enp0s5）抓到包, why?</p>
+<p>Ans： tunl0-&gt;enp0s5(内核态完成封包) &#x3D;&gt; enp0s5(内核态完成解包) -&gt; tunl0; 用户空间无法抓到enp0s5的包。</p>
+<ol>
+<li>node1 pod &lt;&#x3D;&gt; node2 pod</li>
+<li>node1 pod &lt;&#x3D;&gt; node1 eth</li>
+<li>node1 pod &lt;&#x3D; node2 eth, 反之不行</li>
+<li>node1 eth &#x3D;&gt; node2 pod，反之不行</li>
+</ol>
+<p>在node1 pod去ping node2 eth不通，反而确实通的。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># ip netns exec ns1 ping 10.211.55.6</span><br><span class="line">PING 10.211.55.6 (10.211.55.6) 56(84) bytes of data.</span><br><span class="line"></span><br><span class="line"># ping 10.42.1.11</span><br><span class="line">PING 10.42.1.11 (10.42.1.11) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.42.1.11: icmp_seq=1 ttl=63 time=1.65 ms</span><br></pre></td></tr></table></figure>
+
+
+<p>怀疑点：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">node1 pod1 ping node2 pod2</span><br><span class="line">在node2上tunl0抓包</span><br><span class="line"># tcpdump icmp -enpli tunl0</span><br><span class="line"></span><br><span class="line">00:34:25.645026 ip: 10.42.1.11 &gt; 10.42.2.11: ICMP echo request, id 51584, seq 7, length 64</span><br><span class="line">00:34:25.645761 ip: 10.42.2.11 &gt; 10.42.1.11: ICMP echo reply, id 51584, seq 7, length 64</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">node1 eth &lt;=&gt; node2 eth</span><br><span class="line"># ping 10.211.55.6</span><br><span class="line"></span><br><span class="line">on node2</span><br><span class="line"># tcpdump icmp -enpli enp0s5</span><br><span class="line">00:39:01.232519 00:1c:42:b5:29:64 &gt; 00:1c:42:c9:21:1e, ethertype IPv4 (0x0800), length 98: 10.211.55.5 &gt; 10.211.55.6: ICMP echo request, id 29, seq 1, length 64</span><br><span class="line">00:39:01.232611 00:1c:42:c9:21:1e &gt; 00:1c:42:b5:29:64, ethertype IPv4 (0x0800), length 98: 10.211.55.6 &gt; 10.211.55.5: ICMP echo reply, id 29, seq 1, length 6</span><br></pre></td></tr></table></figure>
+<p>通过抓包可以看到，包内容不通。</p>
+<h4 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h4><ol>
+<li>bird会生成两条路有，blackhole及到达其他host pod的路由。</li>
+<li>pod可以访问自己的host和pods on other hosts。</li>
+<li>节点都可以访问pod, 但是反之，pod只能访问自己host eth, 无法访问other hosts eth.</li>
+</ol>
+<h1 id="ref"><a href="#ref" class="headerlink" title="ref"></a>ref</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903903117459469">https://juejin.cn/post/6844903903117459469</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.mygraphql.com/zh/notes/cloud/calico/">https://blog.mygraphql.com/zh/notes/cloud/calico/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.kancloud.cn/pshizhsysu/calico/2095717">https://www.kancloud.cn/pshizhsysu/calico/2095717</a></li>
+</ol>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                
+                
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/cni/"># cni</a>
+                    
+                        <a href="/tags/calico/"># calico</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2023/05/11/multi-attach-error-for-volume/">multi-attach error for volume</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Mingeer | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>
