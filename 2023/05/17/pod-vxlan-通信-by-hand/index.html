@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Mingeer">
+
+
+
+
+
+<title>pod vxlan 通信 by hand | Mingeer</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Ming&#39;s Time</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Ming&#39;s Time</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">pod vxlan 通信 by hand</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Mingeer</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">May 17, 2023&nbsp;&nbsp;17:51:34</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/kubernetes/">kubernetes</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p>[toc]</p>
+<h2 id="利用vxlan构建二层虚拟机网络"><a href="#利用vxlan构建二层虚拟机网络" class="headerlink" title="利用vxlan构建二层虚拟机网络"></a>利用vxlan构建二层虚拟机网络</h2><p>每台<code>vm</code>配置 <code>vxlan</code> 网卡以及 <code>ip</code> 地址且所有节点 <code>vxlan</code> 网卡的地址必须是同一个网段</p>
+<table>
+<thead>
+<tr>
+<th>node name</th>
+<th>node ip</th>
+<th>vxlan-test ip</th>
+<th>vxlan-test mac</th>
+<th>pod network</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>master1</td>
+<td>10.211.55.5</td>
+<td>179.17.1.21</td>
+<td>c2:6a:9b:e5:39:8d</td>
+<td>10.234.111.0&#x2F;24</td>
+</tr>
+<tr>
+<td>node1</td>
+<td>10.211.55.6</td>
+<td>179.17.1.31</td>
+<td>7a:3a:fe:45:a3:76</td>
+<td>10.234.118.0&#x2F;24</td>
+</tr>
+</tbody></table>
+<p><img src="/2023/05/17/pod-vxlan-%E9%80%9A%E4%BF%A1-by-hand/pod-vxlan.png" alt="pod-vxlan.png"></p>
+<h2 id="方案"><a href="#方案" class="headerlink" title="方案"></a>方案</h2><p>pod跨节点通信有flannel, calico等，通常采用vxlan,ipip等隧道技术。本文使用vxlan实现pod跨节点通信</p>
+<p>整体步骤：</p>
+<ol>
+<li>为所有节点创建 vxlan-test 虚拟网卡，并配置ip</li>
+<li>在当前节点配置去往其他节点的 Pod 网段的路由信息且指定下一跳是目标节点的 <code>vxlan-test</code> 网卡ip</li>
+<li>为每个节点的 <code>vxlan-test</code> 网卡配置 <code>FDB</code> 和 <code>arp</code> 表, <code>FDB</code>表记录<code>vxlan-test</code> 网卡的 <code>mac</code> 地址以及其节点的 <code>ip</code> 地址映射</li>
+</ol>
+<h2 id="创建vxlan设备及配置ip"><a href="#创建vxlan设备及配置ip" class="headerlink" title="创建vxlan设备及配置ip"></a>创建vxlan设备及配置ip</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ip link add vxlan-test type vxlan id 10001 dstport 4899 local 10.211.55.5 dev enp0s5 nolearning</span><br><span class="line">ip addr add 179.17.1.21/24 dev vxlan-test</span><br><span class="line">ip link set dev vxlan-test address c2:6a:9b:e5:39:8d</span><br><span class="line">ip link set vxlan-test  up</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ip link add vxlan-test type vxlan id 10001 dstport 4899 local 10.211.55.6 dev enp0s5  nolearning</span><br><span class="line">ip link set dev vxlan-test address 7a:3a:fe:45:a3:76</span><br><span class="line">ip addr add 179.17.1.31/24 dev vxlan-test</span><br><span class="line">ip link set vxlan-test up</span><br></pre></td></tr></table></figure>
+<h2 id="配置ARP表和FDB表"><a href="#配置ARP表和FDB表" class="headerlink" title="配置ARP表和FDB表"></a>配置ARP表和FDB表</h2><p>使得所有节点的vxlan-test网卡之间可以互通。</p>
+<p>on master1</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#配置ARP表, ip and mac of vxlan on other nodes </span><br><span class="line">arp -s 179.17.1.31 7a:3a:fe:45:a3:76</span><br><span class="line"></span><br><span class="line">#配置FDB表, vxlan mac and node ip of other nodes </span><br><span class="line">bridge fdb append 7a:3a:fe:45:a3:76 dst 10.211.55.6 dev vxlan-test</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>on node1</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#配置ARP表, ip and mac of vxlan on other nodes</span><br><span class="line">arp -s 179.17.1.21 c2:6a:9b:e5:39:8d</span><br><span class="line"></span><br><span class="line">#配置FDB表,  vxlan mac and node ip of other nodes  </span><br><span class="line">bridge fdb append c2:6a:9b:e5:39:8d dst 10.211.55.5 dev vxlan-test</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="创建pod-netns"><a href="#创建pod-netns" class="headerlink" title="创建pod netns"></a>创建pod netns</h2><p>创建veth pair设备，连接<code>ns</code>和<code>root ns</code><br>on master1</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">// 创建ns, 并将一端放入ns中</span><br><span class="line">ip netns add vxlan.ns1</span><br><span class="line">ip link add veth1-vxlan-ns1 type veth peer name veth2-vxlan-ns1</span><br><span class="line">ip link set veth1-vxlan-ns1 netns vxlan.ns1</span><br><span class="line"></span><br><span class="line">// ns测配置ip, default route</span><br><span class="line">ip -n vxlan.ns1 addr add 10.234.111.10/24 dev veth1-vxlan-ns1</span><br><span class="line">ip -n vxlan.ns1 link set veth1-vxlan-ns1 up</span><br><span class="line">ip netns exec vxlan.ns1 ip route add default via 10.234.111.1 dev veth1-vxlan-ns1</span><br><span class="line">ip -n vxlan.ns1 link set veth1-vxlan-ns1 up</span><br><span class="line"></span><br><span class="line">// host测配置ip</span><br><span class="line">ip addr add 10.234.111.1/24 dev veth2-vxlan-ns1</span><br><span class="line">ip link set veth2-vxlan-ns1 up</span><br></pre></td></tr></table></figure>
+
+<p>on node</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">ip netns add vxlan.ns1</span><br><span class="line"></span><br><span class="line">ip link add veth1-vxlan-ns1 type veth peer name veth2-vxlan-ns1</span><br><span class="line"></span><br><span class="line">ip link set veth1-vxlan-ns1 netns vxlan.ns1</span><br><span class="line"></span><br><span class="line">// ns测配置</span><br><span class="line">ip -n vxlan.ns1 addr add 10.234.118.10/24 dev veth1-vxlan-ns1</span><br><span class="line">ip -n vxlan.ns1 link set veth1-vxlan-ns1 up</span><br><span class="line">ip netns exec vxlan.ns1 ip route add default via 10.234.118.1 dev veth1-vxlan-ns1</span><br><span class="line">ip -n vxlan.ns1 link set veth1-vxlan-ns1 up</span><br><span class="line"></span><br><span class="line">// host测配置</span><br><span class="line">ip addr add 10.234.118.1/24 dev veth2-vxlan-ns1</span><br><span class="line">ip link set veth2-vxlan-ns1 up</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># ping 10.234.118.10</span><br><span class="line">PING 10.234.118.10 (10.234.118.10) 56(84) bytes of data.</span><br><span class="line">^C</span><br></pre></td></tr></table></figure>
+
+<p>此时master无法感知到node上pod网络，所以不通</p>
+<h2 id="配置路由规则打通跨节点跨pod网络"><a href="#配置路由规则打通跨节点跨pod网络" class="headerlink" title="配置路由规则打通跨节点跨pod网络"></a>配置路由规则打通跨节点跨pod网络</h2><p>on master</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">route add -net 10.234.118.0/24 gw 179.17.1.31 dev vxlan-test</span><br></pre></td></tr></table></figure>
+
+<p>on node</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">route add -net 10.234.111.0/24 gw 179.17.1.21 dev vxlan-test</span><br></pre></td></tr></table></figure>
+
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p>on master</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">在host上ping node pod ip</span><br><span class="line"># ping 10.234.118.10</span><br><span class="line">PING 10.234.118.10 (10.234.118.10) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.234.118.10: icmp_seq=1 ttl=63 time=0.810 ms</span><br><span class="line"></span><br><span class="line">在master pod ns里ping node pod ip</span><br><span class="line"># ip netns exec vxlan.ns1 ping 10.234.118.10</span><br><span class="line">PING 10.234.118.10 (10.234.118.10) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.234.118.10: icmp_seq=1 ttl=62 time=0.888 ms</span><br><span class="line">64 bytes from 10.234.118.10: icmp_seq=2 ttl=62 time=1.15 ms</span><br></pre></td></tr></table></figure>
+
+<p>on node</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># ping 10.234.111.10</span><br><span class="line">PING 10.234.111.10 (10.234.111.10) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.234.111.10: icmp_seq=1 ttl=63 time=0.957 ms</span><br><span class="line"></span><br><span class="line"># ip netns exec vxlan.ns1 ping 10.234.111.10</span><br><span class="line">PING 10.234.111.10 (10.234.111.10) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.234.111.10: icmp_seq=1 ttl=62 time=0.716 ms</span><br></pre></td></tr></table></figure>
+
+<h2 id="vxlan是如何工作的"><a href="#vxlan是如何工作的" class="headerlink" title="vxlan是如何工作的"></a>vxlan是如何工作的</h2><p>当pod出来的包，访问目的pod ip是<code>10.234.118.10</code>，作为内层包的<code>dst ip</code>, pod自己的ip就是内层包<code>src ip</code>, 根据节点上的路由规则</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">10.234.118.0/24 via 179.17.1.31 dev vxlan-test</span><br></pre></td></tr></table></figure>
+<p>将会从本机的 <code>vxlan-test</code> 网卡出</p>
+<p><code>vxlan-test</code>设备进行封包</p>
+<ol>
+<li>封装内层<code>mac</code>, 该包下一跳是<code>179.17.1.31</code>，即<code>peer node vxlan-test</code> 网卡的mac作为内层<code>mac</code>的<code>dst mac</code>。</li>
+</ol>
+<p><code>peer node vxlan-test</code> 网卡的mac可从master上的<code>arp</code>表会查询到。</p>
+<p>疑问：如何拿到其他节点的<code>vxlan mac</code>，毕竟是任意设置的网络？<br>在本实验中是自己手动配置的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># arp -n</span><br><span class="line">Address                  HWtype  HWaddress           Flags Mask            Iface</span><br><span class="line">179.17.1.31              ether   7a:3a:fe:45:a3:76   CM                    vxlan-test</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>外层需要添加<code>vxlan header</code>, 其中有vni标记，表明包由哪个vxlan设备处理，也就用作二层网络隔离。该vni标记是在创建vxlan设备时设置。</li>
+<li>再加一层<code>udp header</code>, udp的端口创建vxlan虚拟网卡时会设置。</li>
+<li>然后封装外层包的<code>ip</code>和<code>mac</code>层，通过内层<code>dst mac</code>查找 <code>vxlan-test</code> 网卡的 <code>FDB</code> 表, 找到<code>peer node vxlan</code>设备对应的宿主机<code>ip</code>, 且作为外层包<code>dst ip</code>，即设置为<code>10.211.55.6</code>(node宿主机的ip)，<code>src ip</code>就是宿主机的ip<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># bridge fdb show dev vxlan-test</span><br><span class="line">7a:3a:fe:45:a3:76 dst 10.211.55.6 self permanent</span><br></pre></td></tr></table></figure></li>
+<li>最外层的<code>mac</code>根据master和node宿主机ip是否同网络而设置。如果不同网络，则是<code>master</code> 网关网口的mac地址。本环境恰好是同网络，<code>dst mac</code>就是node宿主机的网口<code>mac</code><br>6.vxlan包封装好后， 包经过master和node的宿主机网络最终到达node节点。node发现是一个vxlan包，内核将外层<code>mac～udp</code>剥掉后取出内部数据帧， 内核协议栈根据<code>vxlan header</code>中<code>vni</code>值交给<code>vxlan-test</code>处理, <code>vxlan-test</code>网卡拆包，比对dst mac是自己的，则剥掉<code>mac</code>取出原始的<code>ip</code>包（<code>dst ip是pod ip</code>），经过宿主机的路由达到目标<code>pod</code>中。</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>pod包会从<code>vxlan</code>设备发且下一跳是<code>peer node</code>上的<code>vxlan ip</code></li>
+<li>在本地arp表中，可获取<code>peer node vxlan</code>设备的<code>mac</code>。</li>
+<li>在本机fdb表里记录<code>peer node vxlan device mac</code>和其所在节点的宿主机<code>ip</code>。</li>
+<li><code>inner ip</code>是两个pod的ip</li>
+<li><code>inner dst mac</code>是<code>peer node vxlan device mac</code>.</li>
+<li><code>outer ip</code>是宿主机的物理网口</li>
+</ol>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                
+                
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/vxlan/"># vxlan</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2023/05/17/calico-pod-%E9%80%9A%E4%BF%A1by-hand/">calico pod 通信by hand</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Mingeer | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>
