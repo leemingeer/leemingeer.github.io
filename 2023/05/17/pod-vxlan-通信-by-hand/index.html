@@ -288,6 +288,8 @@
 <p>on node</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># ping 10.234.111.10</span><br><span class="line">PING 10.234.111.10 (10.234.111.10) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.234.111.10: icmp_seq=1 ttl=63 time=0.957 ms</span><br><span class="line"></span><br><span class="line"># ip netns exec vxlan.ns1 ping 10.234.111.10</span><br><span class="line">PING 10.234.111.10 (10.234.111.10) 56(84) bytes of data.</span><br><span class="line">64 bytes from 10.234.111.10: icmp_seq=1 ttl=62 time=0.716 ms</span><br></pre></td></tr></table></figure>
 
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># ip netns exec vxlan.ns1 traceroute 10.234.118.10</span><br><span class="line">traceroute to 10.234.118.10 (10.234.118.10), 30 hops max, 60 byte packets</span><br><span class="line"> 1  _gateway (10.234.111.1)  1.124 ms  1.065 ms  1.052 ms</span><br><span class="line"> 2  179.17.1.31 (179.17.1.31)  1.041 ms  18779.342 ms  18779.350 ms</span><br><span class="line"> 3  10.234.118.10 (10.234.118.10)  1.706 ms  1.666 ms  1.568 ms</span><br></pre></td></tr></table></figure>
+<p><code>ether pair -&gt; peer node vxlan -&gt; pod ip</code><br>看不到宿主机设备</p>
 <h2 id="vxlan是如何工作的"><a href="#vxlan是如何工作的" class="headerlink" title="vxlan是如何工作的"></a>vxlan是如何工作的</h2><p>当pod出来的包，访问目的pod ip是<code>10.234.118.10</code>，作为内层包的<code>dst ip</code>, pod自己的ip就是内层包<code>src ip</code>, 根据节点上的路由规则</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">10.234.118.0/24 via 179.17.1.31 dev vxlan-test</span><br></pre></td></tr></table></figure>
 <p>将会从本机的 <code>vxlan-test</code> 网卡出</p>
@@ -311,6 +313,8 @@
 <li><code>inner ip</code>是两个pod的ip</li>
 <li><code>inner dst mac</code>是<code>peer node vxlan device mac</code>.</li>
 <li><code>outer ip</code>是宿主机的物理网口</li>
+<li>所有节点的<code>vxlan</code>必须在同一个网络，大二层</li>
+<li>节点可以有多个打二层，通过<code>vni</code>区分</li>
 </ol>
 
         </div>
