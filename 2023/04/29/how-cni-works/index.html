@@ -221,9 +221,11 @@
         </header>
 
         <div class="post-content">
-            <p><img src="/2023/04/29/cnitools-help-debug-cni/cni-plugin.png" alt="cni-plugin.png"></p>
+            <p><img src="/2023/04/29/how-cni-works/cni-plugin.png" alt="cni-plugin.png"></p>
 <p>在<code>kubelet-call-cni.md</code>中分析了<code>cri runtime</code>通过配置文件参数和环境环境作为入参调用具体的<code>cni plugin</code>来为pod创建网络资源.</p>
-<h1 id="像csi一样规范使用cni-plugin"><a href="#像csi一样规范使用cni-plugin" class="headerlink" title="像csi一样规范使用cni plugin"></a>像csi一样规范使用cni plugin</h1><p><code>cni plugin</code>的实现方法各异，如何更好的集成使用呢？<br>cni不同于cri和csi,后者通过grpc协议规定好了接口方法。<br>cni是通过binary方式调用，需要统一使用姿势。</p>
+<a href="/2023/04/29/kubelet-call-cni/" title="kubelet call cni">kubelet call cni</a>
+
+<h1 id="像csi一样规范使用cni-plugin"><a href="#像csi一样规范使用cni-plugin" class="headerlink" title="像csi一样规范使用cni plugin"></a>像csi一样规范使用cni plugin</h1><p><code>cni plugin</code>的实现方法各异，如何更好的集成使用呢？<br><code>cni</code>不同于cri和csi,后者通过grpc协议规定好了接口方法。<br>cni是通过binary方式调用，需要统一使用姿势。</p>
 <h2 id="统一的封装"><a href="#统一的封装" class="headerlink" title="统一的封装"></a>统一的封装</h2><ol>
 <li>统一方法名</li>
 <li>统一公用的参数</li>
