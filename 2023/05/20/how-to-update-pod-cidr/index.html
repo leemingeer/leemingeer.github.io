@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Mingeer">
+
+
+
+
+
+<title>how to update pod cidr | Mingeer</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Ming&#39;s Time</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Ming&#39;s Time</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">how to update pod cidr</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Mingeer</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">May 20, 2023&nbsp;&nbsp;0:00:00</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/kubernetes/">kubernetes</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p>当本 <code>node</code> 分配的 <code>pod cidr</code> 发生变化时，node上的 <code>pod</code> 如何更新其 <code>ip</code> 呢？</p>
+<h2 id="更新node对象"><a href="#更新node对象" class="headerlink" title="更新node对象"></a>更新node对象</h2><p><code>pkg/kubelet/kubelet_node_status.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">func (kl *Kubelet) fastStatusUpdateOnce() &#123;</span><br><span class="line">	for &#123;</span><br><span class="line">		time.Sleep(100 * time.Millisecond)</span><br><span class="line">		</span><br><span class="line">		node, err := kl.GetNode()</span><br><span class="line">		podCIDRs := strings.Join(node.Spec.PodCIDRs, &quot;,&quot;)</span><br><span class="line">		if _, err := kl.updatePodCIDR(podCIDRs); err != nil &#123;</span><br><span class="line">			klog.ErrorS(err, &quot;Pod CIDR update failed&quot;, &quot;CIDR&quot;, podCIDRs)</span><br><span class="line">			continue</span><br><span class="line">		&#125;</span><br><span class="line">		kl.updateRuntimeUp()</span><br><span class="line">		kl.syncNodeStatus()</span><br><span class="line">		return</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>启动单独的goroutine，在里面更新<code>podcidr</code>, <code>runtime</code>, <code>nodeStatus</code>.</p>
+<h2 id="更新pod-cidr"><a href="#更新pod-cidr" class="headerlink" title="更新pod cidr"></a>更新pod cidr</h2><p>当更新了node对象的网络信息，则需要更新node上的pod。即node.pod cidr需要传给第<code>runtime shim =&gt; cni-plugin =&gt; pod netns eth0 </code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">func (kl *Kubelet) updatePodCIDR(cidr string) (bool, error) &#123;</span><br><span class="line"></span><br><span class="line">	podCIDR := kl.runtimeState.podCIDR()</span><br><span class="line">	// 如果cidr没有变化，则不向runtime shim更新pod cidr</span><br><span class="line">	if podCIDR == cidr &#123;</span><br><span class="line">		return false, nil</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	// kubelet -&gt; generic runtime -&gt; runtime shim -&gt; network plugin</span><br><span class="line">	// docker/non-cri implementations have a passthrough UpdatePodCIDR</span><br><span class="line">	if err := kl.getRuntime().UpdatePodCIDR(cidr); err != nil &#123;</span><br><span class="line">		return true, fmt.Errorf(&quot;failed to update pod CIDR: %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	kl.runtimeState.setPodCIDR(cidr)</span><br><span class="line">	return true, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>将pod的cidr传递给<code>runtime shim</code>, 同时更新到<code>runtimeState</code></p>
+<h2 id="runtime更新配置"><a href="#runtime更新配置" class="headerlink" title="runtime更新配置"></a>runtime更新配置</h2><p><code>pkg/kubelet/kuberuntime/kuberuntime_manager.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">func (m *kubeGenericRuntimeManager) UpdatePodCIDR(podCIDR string) error &#123;</span><br><span class="line">	// TODO(#35531): do we really want to write a method on this manager for each</span><br><span class="line">	// field of the config?</span><br><span class="line">	klog.InfoS(&quot;Updating runtime config through cri with podcidr&quot;, &quot;CIDR&quot;, podCIDR)</span><br><span class="line">	// 调用底层运行时， 更新runtime的配置</span><br><span class="line">	return m.runtimeService.UpdateRuntimeConfig(</span><br><span class="line">		&amp;runtimeapi.RuntimeConfig&#123;</span><br><span class="line">			NetworkConfig: &amp;runtimeapi.NetworkConfig&#123;</span><br><span class="line">				PodCidr: podCIDR,</span><br><span class="line">			&#125;,</span><br><span class="line">		&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="docker-network-配置更新"><a href="#docker-network-配置更新" class="headerlink" title="docker network 配置更新"></a>docker network 配置更新</h2><p><code>pkg/kubelet/dockershim/docker_service.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">// 只负责处理pod cidr更新</span><br><span class="line">func (ds *dockerService) UpdateRuntimeConfig(_ context.Context, r *runtimeapi.UpdateRuntimeConfigRequest) (*runtimeapi.UpdateRuntimeConfigResponse, error) &#123;</span><br><span class="line">	runtimeConfig := r.GetRuntimeConfig()</span><br><span class="line">	if runtimeConfig == nil &#123;</span><br><span class="line">		return &amp;runtimeapi.UpdateRuntimeConfigResponse&#123;&#125;, nil</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	klog.InfoS(&quot;Docker cri received runtime config&quot;, &quot;runtimeConfig&quot;, runtimeConfig)</span><br><span class="line">	if ds.network != nil &amp;&amp; runtimeConfig.NetworkConfig.PodCidr != &quot;&quot; &#123;</span><br><span class="line">		event := make(map[string]interface&#123;&#125;)</span><br><span class="line">		event[network.NET_PLUGIN_EVENT_POD_CIDR_CHANGE_DETAIL_CIDR] = runtimeConfig.NetworkConfig.PodCidr</span><br><span class="line">		// 当运行时变更后，就给运行时的告知network变更事件</span><br><span class="line">		ds.network.Event(network.NET_PLUGIN_EVENT_POD_CIDR_CHANGE, event)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return &amp;runtimeapi.UpdateRuntimeConfigResponse&#123;&#125;, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="更新到cni-plugin管理器"><a href="#更新到cni-plugin管理器" class="headerlink" title="更新到cni plugin管理器"></a>更新到<code>cni plugin</code>管理器</h2><p>更新到<code>pod cidr</code>对象。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">func (plugin *cniNetworkPlugin) Event(name string, details map[string]interface&#123;&#125;) &#123;</span><br><span class="line">	plugin.podCidr = podCIDR</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>构建运行时的CapabilityArgs参数， 包括</p>
+<ul>
+<li>portMappings</li>
+<li>ipRanges</li>
+<li>bandwidth</li>
+<li>dns</li>
+</ul>
+<p>具体： <code>https://github.com/containernetworking/cni/blob/main/CONVENTIONS.md</code></p>
+<h2 id="runtime参数传递给cni-plugin"><a href="#runtime参数传递给cni-plugin" class="headerlink" title="runtime参数传递给cni plugin"></a>runtime参数传递给cni plugin</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">func (plugin *cniNetworkPlugin) buildCNIRuntimeConf(podName string, podNs string, podSandboxID kubecontainer.ContainerID, podNetnsPath string, annotations, options map[string]string) (*libcni.RuntimeConf, error) &#123;</span><br><span class="line">    // 要给底层运行时的配置</span><br><span class="line">	rt := &amp;libcni.RuntimeConf&#123;</span><br><span class="line">		ContainerID: podSandboxID.ID,</span><br><span class="line">		NetNS:       podNetnsPath,</span><br><span class="line">		IfName:      network.DefaultInterfaceName,</span><br><span class="line">		CacheDir:    plugin.cacheDir,</span><br><span class="line">		Args: [][2]string&#123;</span><br><span class="line">			&#123;&quot;IgnoreUnknown&quot;, &quot;1&quot;&#125;,</span><br><span class="line">			&#123;&quot;K8S_POD_NAMESPACE&quot;, podNs&#125;,</span><br><span class="line">			&#123;&quot;K8S_POD_NAME&quot;, podName&#125;,</span><br><span class="line">			&#123;&quot;K8S_POD_INFRA_CONTAINER_ID&quot;, podSandboxID.ID&#125;,</span><br><span class="line">		&#125;,</span><br><span class="line">	&#125;</span><br><span class="line">	rt.CapabilityArgs = map[string]interface&#123;&#125;&#123;</span><br><span class="line">		portMappingsCapability: portMappingsParam,</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	rt.CapabilityArgs[bandwidthCapability] = bandwidthParam</span><br><span class="line"></span><br><span class="line">	// Set the PodCIDR</span><br><span class="line">	rt.CapabilityArgs[ipRangesCapability] = [][]cniIPRange&#123;&#123;&#123;Subnet: plugin.podCidr&#125;&#125;&#125;</span><br><span class="line">	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="参数传递给cni-plugin-stdin"><a href="#参数传递给cni-plugin-stdin" class="headerlink" title="参数传递给cni plugin stdin"></a>参数传递给cni plugin stdin</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">func buildOneConfig(name, cniVersion string, orig *NetworkConfig, prevResult types.Result, rt *RuntimeConf) (*NetworkConfig, error) &#123;</span><br><span class="line">	var err error</span><br><span class="line"></span><br><span class="line">    // 给每个cni plugin注入的</span><br><span class="line">	inject := map[string]interface&#123;&#125;&#123;</span><br><span class="line">		&quot;name&quot;:       name,</span><br><span class="line">		&quot;cniVersion&quot;: cniVersion,</span><br><span class="line">	&#125;</span><br><span class="line">	// 因为有多个cni plugin， 将前一个cni plugin的结果传递到当前cni plugin</span><br><span class="line">	// Add previous plugin result</span><br><span class="line">	if prevResult != nil &#123;</span><br><span class="line">		inject[&quot;prevResult&quot;] = prevResult</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    // 将最外层的cniVersion和name注入到每个cni plugin中</span><br><span class="line">	// Ensure every config uses the same name and version</span><br><span class="line">	orig, err = InjectConf(orig, inject)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return nil, err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    // 注入runtime shim的配置参数</span><br><span class="line">	return injectRuntimeConfig(orig, rt)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>origin表示某一个cni plugin中stdin输入的参数。将runtime shim侧的参数也注入到plugin 的 stdin中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">func injectRuntimeConfig(orig *NetworkConfig, rt *RuntimeConf) (*NetworkConfig, error) &#123;</span><br><span class="line">	var err error</span><br><span class="line"></span><br><span class="line">	rc := make(map[string]interface&#123;&#125;)</span><br><span class="line">	for capability, supported := range orig.Network.Capabilities &#123;</span><br><span class="line">		if !supported &#123;</span><br><span class="line">			continue</span><br><span class="line">		&#125;</span><br><span class="line">		if data, ok := rt.CapabilityArgs[capability]; ok &#123;</span><br><span class="line">			rc[capability] = data</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	if len(rc) &gt; 0 &#123;</span><br><span class="line">		orig, err = InjectConf(orig, map[string]interface&#123;&#125;&#123;&quot;runtimeConfig&quot;: rc&#125;)</span><br><span class="line">		if err != nil &#123;</span><br><span class="line">			return nil, err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return orig, nil</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="cni-plugin-Capability"><a href="#cni-plugin-Capability" class="headerlink" title="cni plugin Capability"></a>cni plugin Capability</h2><h3 id="portmapping"><a href="#portmapping" class="headerlink" title="portmapping"></a>portmapping</h3><p>将<code>hostPort</code>和<code>containrePort</code>做关联，内部实现原理是<code>todo</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">// port mappings are a cni capability-based args, rather than parameters</span><br><span class="line">// to a specific plugin</span><br><span class="line">portMappings, err := plugin.host.GetPodPortMappings(podSandboxID.ID)</span><br><span class="line">if err != nil &#123;</span><br><span class="line">	return nil, fmt.Errorf(&quot;could not retrieve port mappings: %v&quot;, err)</span><br><span class="line">&#125;</span><br><span class="line">portMappingsParam := make([]cniPortMapping, 0, len(portMappings))</span><br><span class="line">for _, p := range portMappings &#123;</span><br><span class="line">	if p.HostPort &lt;= 0 &#123;</span><br><span class="line">		continue</span><br><span class="line">	&#125;</span><br><span class="line">	portMappingsParam = append(portMappingsParam, cniPortMapping&#123;</span><br><span class="line">		HostPort:      p.HostPort,</span><br><span class="line">		ContainerPort: p.ContainerPort,</span><br><span class="line">		Protocol:      strings.ToLower(string(p.Protocol)),</span><br><span class="line">		HostIP:        p.HostIP,</span><br><span class="line">	&#125;)</span><br><span class="line">&#125;</span><br><span class="line">rt.CapabilityArgs = map[string]interface&#123;&#125;&#123;</span><br><span class="line">	portMappingsCapability: portMappingsParam,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="other"><a href="#other" class="headerlink" title="other"></a>other</h3><p><code>todo</code></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>node-ipam-controller(controller-manager) =&gt; node(pod cidr，可allcate多个) =&gt; runtime shim =&gt; cni管理器 =&gt; specific cni plugin(配置文件设置是否开启) =&gt; pod netns eth</code></p>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                
+                
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/cni/"># cni</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2023/05/17/pod-vxlan-%E9%80%9A%E4%BF%A1-by-hand/">pod vxlan 通信 by hand</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Mingeer | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>
