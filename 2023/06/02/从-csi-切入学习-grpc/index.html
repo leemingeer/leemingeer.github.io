@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Mingeer">
+
+
+
+
+
+<title>从 csi 切入学习 grpc | Mingeer</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Ming&#39;s Time</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Ming&#39;s Time</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">从 csi 切入学习 grpc</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Mingeer</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">June 2, 2023&nbsp;&nbsp;14:44:24</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/grpc/">grpc</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p>相关代码: <a target="_blank" rel="noopener" href="https://github.com/leemingeer/grpc-simple">grpc-simple</a></p>
+<h2 id="rpc-简介"><a href="#rpc-简介" class="headerlink" title="rpc 简介"></a>rpc 简介</h2><p>单体应用微服务化之后，之间会有调用需求，可以通过 <code>http or rpc</code> 方式完成</p>
+<p><code>HTTP</code> 是大家熟知的通信协议,<br><code>http</code> 是和数据传输没关系的，数据传输是 <code>tcp/ip</code> 层做的, 而 <code>http</code> 负责定义好 <code>client</code> 与 <code>server</code> 交互数据的格式, 定义好后就可以有四层进行传输了。</p>
+<p><code>RPC</code> 则是远程过程调用，它不是一种协议，而是一种使用习惯&#x2F;方式，所以和 <code>HTTP</code> 是两个维度的东西，<code>RPC</code> 也涉及到交互，需要约定好格式。它的实现可以基于http，也可以自定义格式，再由 <code>tcp</code> 四层传输，通常底层是<code>http/2</code>实现.</p>
+<p>so why rpc, 用 http 不行么？</p>
+<p>用 <code>http</code> 是可行的，考虑使用习惯和效率而选用 <code>rpc</code></p>
+<ul>
+<li>习惯： <code>RPC</code> 调用是因为服务的拆分，服务被拆分后非常期望代码上还和之前本地调用相同，因此需要 <code>RPC</code> 框架，来屏蔽这些底层调用细节</li>
+<li>效率：<ul>
+<li>http是通用规范，所以第三方库都使用<code>http</code>作为通信协议。对于专用内部组件，完全可以改成自定义的 <code>rpc</code> 这种协议</li>
+<li>http的<code>json</code>格式的数据是冗余，序列成二进制后许多重复的字段，浪费带宽，这其实是为了用户的可读性设计而rpc使用的是<code>proto buf</code>格式，放弃了可读性而追求效率。进行两个方面优化，<ul>
+<li><code>Protobuf</code> 选用了 <code>VarInts</code> 对数字进行编码，解决了效率问题</li>
+<li>给每个字段指定一个整数编号，传输的时候只传字段编号，解决了冗余问题</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="csi-中的应用"><a href="#csi-中的应用" class="headerlink" title="csi 中的应用"></a>csi 中的应用</h2><p><img src="/2023/06/02/%E4%BB%8E-csi-%E5%88%87%E5%85%A5%E5%AD%A6%E4%B9%A0-grpc/grpc-csi.png" alt="image"></p>
+<p>csi的各个sidecar之间的调用都是通过grpc， 本次着重分析使用的接口文件.<br>csi中只使用了<code>csi/csi.pb.go</code>，而官方还会有另外一个<code>csi_grpc.pb.go</code>, 官方给出了这样的解释。<br>从1.30.x开始，<code>protoc</code>会生成两个单独的文件，将入参、出参、序列化代码存于<code>pb.go</code>，而<code>grpc.pb.go</code>存放接口</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">From 1.30.x gRPC, gRPC protoc generates *.pb.go and *_grpc.pb.go separately:</span><br><span class="line"></span><br><span class="line">*.pb.go, which contains all the protocol buffer code to populate, serialize, and retrieve request and response message types.</span><br><span class="line">*_grpc.pb.go, which contains the following:</span><br><span class="line">An interface type (or stub) for clients to call with the methods defined in the service.</span><br><span class="line">An interface type for servers to implement, also with the methods defined in the service.</span><br></pre></td></tr></table></figure>
+
+<p>自己动手，丰衣足食</p>
+<h2 id="Prerequisites"><a href="#Prerequisites" class="headerlink" title="Prerequisites"></a>Prerequisites</h2><ul>
+<li>安装Go</li>
+<li>protoc<ul>
+<li>protocol  compile</li>
+<li>protoc是用c++编写，用于编译.proto文件</li>
+</ul>
+</li>
+<li>protoc-gen-go<ul>
+<li>安装Go plugins for protocol compiler</li>
+<li>除了安装protoc之外，还需要安装各个语言对应的编译插件。<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"># PB_REL=&quot;https://github.com/protocolbuffers/protobuf/releases&quot;</span><br><span class="line"># curl -LO $PB_REL/download/v3.15.8/protoc-3.15.8-linux-x86_64.zip</span><br><span class="line"># unzip protoc-3.15.8-linux-x86_64.zip -d $HOME/.local</span><br><span class="line"># export PATH=&quot;$PATH:$HOME/.local/bin&quot;</span><br><span class="line"></span><br><span class="line">1. install</span><br><span class="line">$ export GOPROXY=https://goproxy.cn,direct</span><br><span class="line">$ go get google.golang.org/protobuf/cmd/protoc-gen-go@v1.26</span><br><span class="line">$ go get google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1</span><br><span class="line"></span><br><span class="line">2.Update your PATH so that the protoc compiler can find the plugins:</span><br><span class="line">$ export PATH=&quot;$PATH:$(go env GOPATH)/bin&quot;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>protoc 中原生包含了部分语言（java、php、python、ruby等等）的编译插件，但是没有 Go 语言的，所以需要额外安装一个插件。<a target="_blank" rel="noopener" href="https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/compiler/main.cc">https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/compiler/main.cc</a></p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h2><h3 id="创建-proto-文件"><a href="#创建-proto-文件" class="headerlink" title="创建.proto 文件"></a>创建.proto 文件</h3><!---->
+
+<pre><code>syntax = &quot;proto3&quot;;
+option go_package = &quot;google.golang.org/grpc/examples/helloworld/helloworld&quot;;
+
+package helloworld;
+
+// The greeting service definition.
+service Greeter &#123;
+  // Sends a greeting
+  rpc SayHello (HelloRequest) returns (HelloReply) &#123;&#125;
+&#125;
+
+// The request message containing the user&#39;s name.
+message HelloRequest &#123;
+  string name = 1;
+&#125;
+
+// The response message containing the greetings
+message HelloReply &#123;
+  string message = 1;
+&#125;
+</code></pre>
+<h3 id="编译proto"><a href="#编译proto" class="headerlink" title="编译proto"></a>编译proto</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># Syntax: protoc [OPTION] PROTO_FILES</span><br><span class="line">$ protoc --proto_path=IMPORT_PATH  --go_out=OUT_DIR  --go_opt=paths=source_relative path/to/file.proto</span><br></pre></td></tr></table></figure>
+
+<p>这里简单介绍编译参数:</p>
+<ul>
+<li>–proto_path或者-I：指定 import 的其他proto路径，可以指定多个参数，编译时按顺序查找，不指定时默认查找当前目录。<ul>
+<li>.proto 文件中也可以引入其他 .proto 文件，这里主要用于指定被引入文件的位置。</li>
+</ul>
+</li>
+<li>–go_out：golang编译支持，指定输出文件路径<br>其他语言则替换即可，比如 –java_out 等等</li>
+<li>–go_opt：可选参数，比如–go_opt&#x3D;paths&#x3D;source_relative就是表明生成文件输出使用相对路径。</li>
+<li>path&#x2F;to&#x2F;file.proto ：被编译的 .proto 文件放在最后面</li>
+</ul>
+<!---->
+
+<pre><code>$ helloworld.proto
+
+# protoc --go_out=. \
+       --go_opt=paths=source_relative \
+       --go-grpc_out=. \
+       --go-grpc_opt=paths=source_relative \
+       ./helloworld.proto
+</code></pre>
+<p>编译后会生成两个文件。</p>
+<pre><code>helloworld.pb.go
+helloworld_grpc.pb.go
+</code></pre>
+<p>编译过程可以分成两步</p>
+<ul>
+<li>protoc解析.protoc文件，编译成 protobuf 的原生数据结构保存在内存中；</li>
+<li>调用特定的语言插件，渲染输出为特定语言的模板。</li>
+</ul>
+<h3 id="编写client和server侧"><a href="#编写client和server侧" class="headerlink" title="编写client和server侧"></a>编写client和server侧</h3><p>两侧的<code>main.go</code>，可以参考官方例子 <code>helloworld</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># git clone -b v1.52.0 --depth 1 https://github.com/grpc/grpc-go</span><br><span class="line"># cd grpc-go/examples/helloworld</span><br><span class="line"># tree</span><br><span class="line">.</span><br><span class="line">├── greeter_client</span><br><span class="line">│   └── main.go                // client</span><br><span class="line">├── greeter_server</span><br><span class="line">│   └── main.go                // server</span><br><span class="line">└── helloworld</span><br><span class="line">    ├── helloworld_grpc.pb.go  // </span><br><span class="line">    ├── helloworld.pb.go       //</span><br><span class="line">    └── helloworld.proto       // protocol buffers协议规范</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="grpc-高级特性"><a href="#grpc-高级特性" class="headerlink" title="grpc 高级特性"></a>grpc 高级特性</h2><h3 id="拦截器实现原理分析"><a href="#拦截器实现原理分析" class="headerlink" title="拦截器实现原理分析"></a>拦截器实现原理分析</h3><p>拦截器分为服务端拦截器和客户端拦截器，所以一共有以下4种类型:</p>
+<ul>
+<li>grpc.UnaryServerInterceptor</li>
+<li>grpc.StreamServerInterceptor</li>
+<li>grpc.UnaryClientInterceptor</li>
+<li>grpc.StreamClientInterceptor</li>
+</ul>
+<p>以 <code>client</code> 侧的拦截器为例进行分析</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># client</span><br><span class="line">conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(creds), grpc.WithStreamInterceptor(streamInterceptor))</span><br><span class="line"></span><br><span class="line"># server</span><br><span class="line">s := grpc.NewServer(grpc.Creds(creds), grpc.StreamInterceptor(streamInterceptor))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>多个形如 <code>grpc.WithXXXInterceptor</code> 方法作为函数入参，其实则是动态参数的<code>DialOption</code>对象, 语法糖。</p>
+<p><code>with</code> 传入的拦截器作为 <code>Dial()</code> 的参数，分析 <code>Dial</code> 呼叫的流程</p>
+<pre><code>func Dial(target string, opts ...DialOption) &#123;
+    return DialContext(context.Background(), target, opts...) // 一个opts表示一个Withxxx参数，这里有多个，通过加三个点，告知下一层
+&#125;
+
+func DialContext(ctx context.Context, target string, opts ...DialOption) (conn *ClientConn, err error) &#123;
+
+    cc := &amp;ClientConn&#123;
+            ...
+            dopts:             defaultDialOptions(),
+            ...
+    &#125;
+   // opts 是with传入的可选拦截器
+    for _, opt := range opts &#123;
+        opt.apply(&amp;cc.dopts)
+    &#125;
+
+&#125;
+</code></pre>
+<p>执行每一个 <code>DialOption</code> 对象的 <code>apply()</code> 方法，入参是 <code>default dialoption</code> 对象</p>
+<p>主要流程结束，再返回头来分析 <code>grpc.WithXXXInterceptor</code>, 以 <code>grpc.WithUnaryInterceptor(unaryInterceptor)</code> 为例子。</p>
+<pre><code>// 闭包的用法
+func WithUnaryInterceptor(f UnaryClientInterceptor) DialOption &#123;
+    return newFuncDialOption(func(o *dialOptions) &#123;
+        // 将拦截器方法 赋值给dialOptions的unaryInt field
+        o.unaryInt = f
+    &#125;)
+&#125;
+
+func newFuncDialOption(f func(*dialOptions)) *funcDialOption &#123;
+    return &amp;funcDialOption&#123;
+        f: f,
+    &#125;
+&#125;
+</code></pre>
+<p>将外部拦截器 <code>f</code>，传入函数对象且作为入参。<br>这里直接返回匿名函数，内部是<code>f(o)</code>执行不就可以了吗？</p>
+<p>实际是将匿名函数传入<code>NewFuncXXX</code>, 在<code>newFuncXXX</code>中，实例化<code>funcDialOption</code>对象，匿名函数作为其属性而已。</p>
+<p>该类型对象及其方法。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">type funcDialOption struct &#123;</span><br><span class="line">	f func(*dialOptions)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (fdo *funcDialOption) apply(do *dialOptions) &#123;</span><br><span class="line">	fdo.f(do)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func newFuncDialOption(f func(*dialOptions)) *funcDialOption &#123;</span><br><span class="line">	return &amp;funcDialOption&#123;</span><br><span class="line">		f: f,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再回到执行处</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">   for _, opt := range opts &#123;</span><br><span class="line">	opt.apply(&amp;cc.dopts)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用 <code>funcDialOption</code> 对象的 <code>apply</code> 方法。<br>实际是执行外部匿名函数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">func(o *dialOptions) &#123;</span><br><span class="line">		o.unaryInt = f</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>所以最后实现的功能是将拦截器方法赋值给 <code>dialOptions</code> 对象的 <code>unaryInt field</code>, 拦截器 <code>f</code> 是没有执行的。</p>
+<p>拦截器何时执行呢？</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">// call.go</span><br><span class="line">func (cc *ClientConn) Invoke(ctx context.Context, method string, args, reply interface&#123;&#125;, opts ...CallOption) error &#123;</span><br><span class="line">	// allow interceptor to see all applicable call options, which means those</span><br><span class="line">	// configured as defaults from dial option as well as per-call options</span><br><span class="line">	opts = combine(cc.dopts.callOptions, opts)</span><br><span class="line">    // 有拦截器, 通过拦截器执行invoke</span><br><span class="line">	if cc.dopts.unaryInt != nil &#123;</span><br><span class="line">		return cc.dopts.unaryInt(ctx, method, args, reply, cc, invoke, opts...)</span><br><span class="line">	&#125;</span><br><span class="line">	// 直接执行 invoke</span><br><span class="line">	return invoke(ctx, method, args, reply, cc, opts...)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>没有拦截器则直接执行<code>invoke</code>。<br>有拦截器，则由 <code>UnaryInterceptor</code> 拦截器去执行， <code>invoke</code>作为参数。</p>
+<p>在 <code>client</code> 侧经常看到的<code>c.cc.Invoke(ctx, &quot;/helloworld.Hello/UnaryHello&quot;, in, out, opts...) </code>执行的就是该方法.</p>
+<p><code>clientConn</code> 对象就是 <code>conn, err := grpc.Dial(address,...)</code> 呼叫后返回<code>conn</code>链接对象.</p>
+<p><code>UnaryInterceptor</code> 拦截器的实现</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">func unaryInterceptor(ctx context.Context, method string, req, reply interface&#123;&#125;, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error &#123;</span><br><span class="line">	// pre-processing， 拦截器之前</span><br><span class="line">	start := time.Now()</span><br><span class="line">	err := invoker(ctx, method, req, reply, cc, opts...) // invoking RPC method</span><br><span class="line">	// post-processing，拦截器之后</span><br><span class="line">	end := time.Now()</span><br><span class="line">	log.Printf(&quot;RPC: %s, req:%v start time: %s, end time: %s, err: %v&quot;, method, req, start.Format(time.RFC3339), end.Format(time.RFC3339), err)</span><br><span class="line">	return err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，最后执行的还是传入的 <code>invoke</code> 方法， 在 <code>invoke</code> 之前或之后可以定义一些逻辑，从而实现了 <code>python</code> 装饰器的功能，比如动态添加一些逻辑。</p>
+<p>不管是普通<code>rpc</code>, 还是拦截器，最后调用的是<code>invoke</code>方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">func invoke(ctx context.Context, method string, req, reply interface&#123;&#125;, cc *ClientConn, opts ...CallOption) error &#123;</span><br><span class="line">	cs, err := newClientStream(ctx, unaryStreamDesc, cc, method, opts...)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line">	if err := cs.SendMsg(req); err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line">	return cs.RecvMsg(reply)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>依赖底层的<code>clientStream</code>对象，通过<code>SendMsg</code>, <code>RecvMsg</code>方法实现请求。</p>
+<blockquote>
+<p>函数名作为变量的理解</p>
+</blockquote>
+<ol>
+<li>入参是<code>UnaryClientInterceptor</code>, 函数名表示一种类型，类似<code>int</code>.</li>
+<li><code>func(o *dialOptions)</code>也是一种类型，等价于函数名，只是匿名而已，后面括号表示实例化，整体<br>表示一个函数实例化对象。<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">func(o *dialOptions) &#123;</span><br><span class="line">		o.unaryInt = f</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+个人认为没必要再封装一层<code>funcDialOption</code></li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">func WithUnaryInterceptor(f UnaryClientInterceptor) DialOption &#123;</span><br><span class="line">	return func(o *dialOptions) &#123;</span><br><span class="line">		o.unaryInt = f</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">调用时</span><br><span class="line">    for _, opt := range opts &#123;</span><br><span class="line">		opt(&amp;cc.dopts)</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="gRPC-Gateway"><a href="#gRPC-Gateway" class="headerlink" title="gRPC-Gateway"></a>gRPC-Gateway</h3><p>这种 <code>protoc</code> 插件使 <code>rpc server</code> 能对外提供 <code>RESTful HTTP API</code> 和 <code>grpc service</code></p>
+<h4 id="安装插件"><a href="#安装插件" class="headerlink" title="安装插件"></a>安装插件</h4><p>用于将protobuf内容生成http方法<br><code>go get github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway </code></p>
+<h4 id="整体流程"><a href="#整体流程" class="headerlink" title="整体流程"></a>整体流程</h4><p>大致就是以 <code>.proto</code> 文件为基础，编写插件对 <code>protoc</code> 进行扩展，编译出不同语言不同模块的源文件。</p>
+<p>1）首先定义 <code>.proto</code> 文件；<br>2）然后由 <code>protoc</code> 将 <code>.proto</code> 文件编译成 <code>protobuf</code> 格式的数据；<br>3）将 2 中编译后的数据传递到各个插件，生成对应语言、对应模块的源代码。</p>
+<ul>
+<li><code>Go Plugins</code> 用于生成 <code>.pb.go</code> 文件</li>
+<li><code>gRPC Plugins</code> 用于生成 <code>_grpc.pb.go</code></li>
+<li><code>gRPC-Gateway</code> 则是 <code>pb.gw.go</code>, proxy功能的实现</li>
+</ul>
+<h4 id="原理图"><a href="#原理图" class="headerlink" title="原理图"></a>原理图</h4><p><img src="/2023/06/02/%E4%BB%8E-csi-%E5%88%87%E5%85%A5%E5%AD%A6%E4%B9%A0-grpc/grpc-gateway.png" alt="image.png"></p>
+<p><code>client</code> 发起 <code>http req</code>, 将七层的<code>req</code>类比<code>ip</code>层，<code>req</code>先到<code>gateway</code>, 由<code>gateway</code>转发请求到具体的<code>grpc service</code>.</p>
+<p>。</p>
+<p>为了让<code>grpc service</code>支持<code>restful</code>请求<br>1.修改 <code>.proto</code> 文件, 在原先 <code>rpc</code> 方法添加其他调用选项 <code>option</code>, 声明使用 <code>google.api.http, methoh, url， body等参数</code>, 形如</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">service Hello &#123;</span><br><span class="line">  // UnaryAPI</span><br><span class="line">  rpc UnaryHello(HelloRequest) returns (HelloReply) &#123;</span><br><span class="line">    option (google.api.http) = &#123;</span><br><span class="line">      post: &quot;/v1/UnaryHello&quot;</span><br><span class="line">      body: &quot;*&quot;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>gRPC-Gateway</code> 插件才能生成对应 http 方法</p>
+<h4 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h4><p>运行server</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"> # go run main.go</span><br><span class="line">2023/05/30 11:21:44 Serving gRPC on 0.0.0.0:50051</span><br><span class="line">2023/05/30 11:21:44 Serving gRPC-Gateway on http://0.0.0.0:8080</span><br></pre></td></tr></table></figure>
+<p>client通过grpc方式</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">% go run main.go</span><br><span class="line">2023/05/30 11:21:47 Greeting: hello world</span><br></pre></td></tr></table></figure>
+
+<p>client通过http方式</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">% curl -X POST -k http://0.0.0.0:8080/v1/UnaryHello -d &#x27;&#123;&quot;name&quot;: &quot; world&quot;&#125;&#x27;</span><br><span class="line">&#123;&quot;message&quot;:&quot;hello  world&quot;&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>grpc server</code>同时提供 <code>gPRC</code> 服务和 <code>HTTP</code> 服务</p>
+<h4 id="原理分析"><a href="#原理分析" class="headerlink" title="原理分析"></a>原理分析</h4><p><code>grpc server</code> 仍然运行，因此 rpc 请求依然可以给予 <code>service</code>, 额外增加了一个<code>http server</code>, 由其向 <code>rpc server</code> 发起 <code>rpc</code> 请求, 具体方法是</p>
+<ol>
+<li><code>runtime.NewServeMux()</code> New了一个 <code>servermux</code>，</li>
+<li>通过<code>pb.RegisterHelloHandler</code> 注册<code>path</code>为<code>handler</code>.</li>
+<li>将<code>servermux</code>配置为<code>http server</code>的<code>handler</code></li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">func RegisterHelloHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error &#123;</span><br><span class="line">	return RegisterHelloHandlerClient(ctx, mux, NewHelloClient(conn))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func RegisterHelloHandlerClient(ctx context.Context, mux *runtime.ServeMux, client HelloClient) error &#123;</span><br><span class="line"></span><br><span class="line">	mux.Handle(&quot;POST&quot;, pattern_Hello_UnaryHello_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) &#123;</span><br><span class="line">		resp, md, err := request_Hello_UnaryHello_0(annotatedContext, inboundMarshaler, client, req, pathParams)</span><br><span class="line">		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)</span><br><span class="line">		forward_Hello_UnaryHello_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)</span><br><span class="line">	&#125;)</span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 路由path, 用于curl  /v1/UnaryHello</span><br><span class="line">var (</span><br><span class="line">	pattern_Hello_UnaryHello_0 = runtime.MustPattern(runtime.NewPattern(1, []int&#123;2, 0, 2, 1&#125;, []string&#123;&quot;v1&quot;, &quot;UnaryHello&quot;&#125;, &quot;&quot;))</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func request_Hello_UnaryHello_0(ctx context.Context, marshaler runtime.Marshaler, client HelloClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) &#123;</span><br><span class="line">    ....</span><br><span class="line">	msg, err := client.UnaryHello(ctx, &amp;protoReq, grpc.Header(&amp;metadata.HeaderMD), grpc.Trailer(&amp;metadata.TrailerMD))</span><br><span class="line">	return msg, metadata, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>restful</code> 请求先到<code>http server</code>， 由其 <code>handler</code> 通过 <code>grpc client</code>发起 <code>rpc</code> 请求</p>
+<h3 id="使用-context-进行超时控制"><a href="#使用-context-进行超时控制" class="headerlink" title="使用 context 进行超时控制"></a>使用 <code>context</code> 进行超时控制</h3><p>超时控制可以分成两种</p>
+<ol>
+<li>deadline： server侧执行超时，client被迫关闭。</li>
+<li>cancel： client发现错误主动关闭，不需要等server侧返回错误。</li>
+</ol>
+<p><code>client</code> 调用时传入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">// 1秒超时</span><br><span class="line">ctx, cancel := context.WithTimeout(context.Background(), time.Second)</span><br><span class="line">defer cancel()</span><br><span class="line"></span><br><span class="line">// call时传入ctx</span><br><span class="line">_, err := c.UnaryHello(ctx, req)</span><br><span class="line">got := status.Code(err)</span><br></pre></td></tr></table></figure>
+<p>只要 <code>server</code> 侧接口返回超过1s, <code>client call</code> 就返回 <code>DeadlineExceeded error</code></p>
+<p>第二种方式是不放在 <code>defer</code> 里，而是 <code>client</code> 直接调用 <code>cancel()</code></p>
+<p>小结：</p>
+<ol>
+<li>类似 <code>goroutine</code> 的 <code>ctx</code>, <code>context</code> 方式也适用于 <code>grpc</code>, 其内部已经做了 <code>context</code> 的处理</li>
+<li><code>ctx</code> 可以使用<code>context.WithDeadline()</code>或者<code>context.WithTimeout()</code>,二者效果类似，只是传递的参数不一样。 前者是在指定时刻超时，后者是过多久会超时。</li>
+</ol>
+<h3 id="grpc负载均衡-TODO"><a href="#grpc负载均衡-TODO" class="headerlink" title="grpc负载均衡(TODO)"></a>grpc负载均衡(TODO)</h3><h3 id="grpc-服务发现"><a href="#grpc-服务发现" class="headerlink" title="grpc 服务发现"></a>grpc 服务发现</h3><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>编写 <code>x.proto</code> 定义文件</li>
+<li>安装特定语言的插件，生成 <code>pb.go, gprc.pb.go</code>, 使用的也是这两个文件，不包括 <code>x.proto</code>, 这两个文件通常作为 <code>lib</code>，托管在<code>github</code> 上，里面定义好了 <code>client</code> 和 <code>server intrface</code>. <code>client</code> 已经实现好了，可以直接用，需要自己实现 <code>server</code>. 三者名字关系一致，不受里面配置的影响。<code>x.proto, x.pb.go, x_grpc.pb.go</code>,</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">type helloClient struct &#123;</span><br><span class="line">	cc grpc.ClientConnInterface</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func NewHelloClient(cc grpc.ClientConnInterface) HelloClient &#123;</span><br><span class="line">	return &amp;helloClient&#123;cc&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (c *helloClient) UnaryHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error) &#123;</span><br><span class="line">	out := new(HelloReply)</span><br><span class="line">	err := c.cc.Invoke(ctx, &quot;/helloworld.Hello/UnaryHello&quot;, in, out, opts...)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return nil, err</span><br><span class="line">	&#125;</span><br><span class="line">	return out, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>实现 <code>client/main.go</code>, 主要步骤是 <code>grpc.Dial(addr)</code>, <code>pb.NewClient</code>, <code>client.callMethod()</code></p>
+</li>
+<li><p>实现 <code>server/main.go</code>，主要步骤是<code>s:=grpc.NewServer()</code>，<code>pb.RegisterHelloServer(s, &amp;Hello&#123;&#125;)</code>注册服务Hello对象实现grpc接口，<code>net.Listen()</code>,<code>rpcserver.Serve(listen)</code></p>
+</li>
+<li><p>根据 <code>x.proto</code>中定义，可以确定请求路径是 <code>·/$&#123;包名&#125;.$&#123;服务名&#125;/$&#123;接口名&#125;</code></p>
+</li>
+</ol>
+<h2 id="Ref"><a href="#Ref" class="headerlink" title="Ref"></a>Ref</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://www.lixueduan.com/posts/grpc/01-protobuf/#3-go-plugins">https://www.lixueduan.com/posts/grpc/01-protobuf/#3-go-plugins</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.51cto.com/article/706308.html">https://www.51cto.com/article/706308.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/fe5ccfc5d7bd">https://www.jianshu.com/p/fe5ccfc5d7bd</a></li>
+<li><a target="_blank" rel="noopener" href="https://taoshu.in/grpc.html">https://taoshu.in/grpc.html</a></li>
+</ol>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                
+                
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/csi/"># csi</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2023/05/20/how-to-update-pod-cidr/">how to update pod cidr</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Mingeer | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>
