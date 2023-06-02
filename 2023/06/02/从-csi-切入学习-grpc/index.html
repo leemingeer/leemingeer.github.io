@@ -223,10 +223,9 @@
         <div class="post-content">
             <p>相关代码: <a target="_blank" rel="noopener" href="https://github.com/leemingeer/grpc-simple">grpc-simple</a></p>
 <h2 id="rpc-简介"><a href="#rpc-简介" class="headerlink" title="rpc 简介"></a>rpc 简介</h2><p>单体应用微服务化之后，之间会有调用需求，可以通过 <code>http or rpc</code> 方式完成</p>
-<p><code>HTTP</code> 是大家熟知的通信协议,<br><code>http</code> 是和数据传输没关系的，数据传输是 <code>tcp/ip</code> 层做的, 而 <code>http</code> 负责定义好 <code>client</code> 与 <code>server</code> 交互数据的格式, 定义好后就可以有四层进行传输了。</p>
+<p><code>http</code> 是和数据传输没关系的，数据传输是 <code>tcp/ip</code> 层做的, 而 <code>http</code> 负责定义好 <code>client</code> 与 <code>server</code> 交互数据的格式, 定义好后就可以有四层进行传输了。</p>
 <p><code>RPC</code> 则是远程过程调用，它不是一种协议，而是一种使用习惯&#x2F;方式，所以和 <code>HTTP</code> 是两个维度的东西，<code>RPC</code> 也涉及到交互，需要约定好格式。它的实现可以基于http，也可以自定义格式，再由 <code>tcp</code> 四层传输，通常底层是<code>http/2</code>实现.</p>
-<p>so why rpc, 用 http 不行么？</p>
-<p>用 <code>http</code> 是可行的，考虑使用习惯和效率而选用 <code>rpc</code></p>
+<h2 id="so-why-rpc"><a href="#so-why-rpc" class="headerlink" title="so why rpc?"></a>so why rpc?</h2><p>用 <code>http</code> 是可行么？ 答案时肯定的，考虑使用习惯和效率而选用 <code>rpc</code></p>
 <ul>
 <li>习惯： <code>RPC</code> 调用是因为服务的拆分，服务被拆分后非常期望代码上还和之前本地调用相同，因此需要 <code>RPC</code> 框架，来屏蔽这些底层调用细节</li>
 <li>效率：<ul>
