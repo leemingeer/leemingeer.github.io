@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Mingeer">
+
+
+
+
+
+<title>how k8s use gpu by device plugin | Mingeer</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Ming&#39;s Time</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Ming&#39;s Time</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">how k8s use gpu by device plugin</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Mingeer</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">June 18, 2023&nbsp;&nbsp;23:07:26</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/kubernetes/">kubernetes</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>Kubernetes 原生支持对于CPU和内存资源的发现，但是有很多其他的设备 kubelet不能原生处理，比如GPU、FPGA、RDMA、存储设备和其他类似的异构计算资源设备，类比csi、 cni等提出了 device plugin这种机制。</p>
+<h2 id="Device-plugin-原理"><a href="#Device-plugin-原理" class="headerlink" title="Device plugin 原理"></a>Device plugin 原理</h2><p>在k8s资源视角，每一个device 看作一种扩展资源，名字是自定义的。pod在使用时和memory及cpu一致，而且只能整数，还不能小数。</p>
+<ol>
+<li>kubelet 启动后，由<code>container Manager</code>模块， 它在启动<code>cpu manager</code>后启动 <code>device plugin manager</code>子模块.</li>
+<li>每个 <code>device plugin</code> 本质 <code>grpc server</code> 且以<code>daemonset</code>形式运行, 会自动向1中的manager注册, 最后执行 <code>kubectl describe nodes</code>的时候，相关设备会出现在<code>node status</code>中：<code>vendor-domain/vendor-device</code>, 且为了感知到设备的变动，<code>listandWatch</code>机制不断维护该状态。</li>
+<li>k8s 感知到device 后，pod可以通过使用资源。kubelet通过 <code>allocate</code>接口，返回<code>runtime</code> 加载该device资源的挂载点，环境变量等信信息。</li>
+</ol>
+<p>当<code>pod</code> 声明使用<code>nvidia.com/gpu</code>资源<br>0. 修改运行时为<code>nvidia-runtime</code>, 它会将更新到<code>oci spec</code>中的<code>device plugin</code>相关配置，映射到容器中，是真正做事的。</p>
+<ol>
+<li><code>container[0].resources.limits.nvidia.com/gpu: 1</code></li>
+<li>调用 <code>allocate</code>方法, 将<code>DeviceID</code> 转换为 <code>NVIDIA_VISIBLE_DEVICES</code> 环境变量，返回<code>kubelet</code></li>
+<li>kubelet将环境变量注入到Pod， 启动容器</li>
+<li>容器启动时， <code>gpu-container-runtime</code> 调用 <code>gpu-containers-runtime-hook</code>, 根据容器的 <code>NVIDIA_VISIBLE_DEVICES</code> 环境变量，转换为 <code>--devices</code> 参数，调用 <code>nvidia-container-cli prestart</code></li>
+<li><code>nvidia-container-cli</code> 根据 <code>--devices</code> ，将<code>GPU</code>设备映射到容器中。 并且将宿主机的<code>Nvidia Driver Lib</code> 的<code>so</code>文件也映射到容器中, 此时容器可以通过这些so文件，调用宿主机的<code>Nvidia Driver</code>。</li>
+</ol>
+<h2 id="kubelet-服务启动"><a href="#kubelet-服务启动" class="headerlink" title="kubelet 服务启动"></a>kubelet 服务启动</h2><h3 id="kubelet-device-manager-服务启动"><a href="#kubelet-device-manager-服务启动" class="headerlink" title="kubelet device manager 服务启动"></a>kubelet device manager 服务启动</h3><p><code>device manager</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">func (kl *Kubelet) Run(updates &lt;-chan kubetypes.PodUpdate) &#123;</span><br><span class="line">    ....</span><br><span class="line">	go wait.Until(kl.updateRuntimeUp, 5*time.Second, wait.NeverStop)</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">func (kl *Kubelet) updateRuntimeUp() &#123;</span><br><span class="line">    ...</span><br><span class="line">    kl.oneTimeInitializer.Do(kl.initializeRuntimeDependentModules)</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (kl *Kubelet) initializeRuntimeDependentModules()&#123;</span><br><span class="line">    </span><br><span class="line">    // 启动 containerManager</span><br><span class="line">    if err := kl.containerManager.Start(node, kl.GetActivePods, kl.sourcesReady, kl.statusManager, kl.runtimeService); err != nil &#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // kubelet的plugin manager添加两个handler，即csiplugin 和 device plugin</span><br><span class="line">    kl.pluginManager.AddHandler(pluginwatcherapi.CSIPlugin, plugincache.PluginHandler(csi.PluginHandler))</span><br><span class="line"></span><br><span class="line">	kl.pluginManager.AddHandler(pluginwatcherapi.DevicePlugin, kl.containerManager.GetPluginRegistrationHandler())</span><br><span class="line">	</span><br><span class="line">	klog.V(4).Infof(&quot;starting plugin manager&quot;)</span><br><span class="line">	// 启动plugin manager， 其内部有调谐机制，和volume manager类似， 卷设备其实也是一种设备。</span><br><span class="line">	go kl.pluginManager.Run(kl.sourcesReady, wait.NeverStop)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>位置：<code>kubelet</code> 支持多种 <code>plugin</code>, 比如<code>csiplugin</code>, <code>device plugin</code>, 所以需要有个 <code>manager</code> 负责管理.</p>
+<p>扩展了解下<code>plugin manager</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">klet.pluginManager = pluginmanager.NewPluginManager(</span><br><span class="line">	klet.getPluginsRegistrationDir(), /* sockDir */</span><br><span class="line">	kubeDeps.Recorder,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func (rc *reconciler) AddHandler(pluginType string, pluginHandler cache.PluginHandler) &#123;</span><br><span class="line">	rc.Lock()</span><br><span class="line">	defer rc.Unlock()</span><br><span class="line"></span><br><span class="line">	rc.handlers[pluginType] = pluginHandler</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">type PluginHandler interface &#123;</span><br><span class="line"></span><br><span class="line">	ValidatePlugin(pluginName string, endpoint string, versions []string) error</span><br><span class="line"></span><br><span class="line">	RegisterPlugin(pluginName, endpoint string, versions []string) error</span><br><span class="line"></span><br><span class="line">	DeRegisterPlugin(pluginName string)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li><code>plugin</code> 的注册路径 <code>/var/lib/kubelet/plugins_registry/</code>,</li>
+<li><code>given plugin handler for a specific plugin type, which will be added to the actual state of world cache</code></li>
+<li><code>pluginHandler</code>不是函数，而是对象且要实现上面三个方法，因为对象是有许多方法的。</li>
+<li>对于 <code>deviceplugin</code> 其实就是 <code>ManagerImpl</code>, 其有<code>GetWatcherHandler()</code>， 位于<code>pkg/kubelet/cm/devicemanager/manager.go</code></li>
+</ol>
+<p>在 <code>pkg/kubelet/cm/container_manager_linux.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">func (cm *containerManagerImpl) Start()&#123;</span><br><span class="line">    // 启动 cpu manager</span><br><span class="line">	err = cm.cpuManager.Start(cpumanager.ActivePodsFunc(activePods), sourcesReady, podStatusProvider, runtimeService, containerMap)</span><br><span class="line">	</span><br><span class="line">	// 启动 device manager</span><br><span class="line">	if err := cm.deviceManager.Start(devicemanager.ActivePodsFunc(activePods), sourcesReady); err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>device manager</code>是和底层<code>runtime</code> 相关的，所以<code>device manager</code>是 <code>container manager</code>的子模块, 由 <code>container manager</code> 驱动运行。</p>
+<p>重新回到 <code>container manager</code>的 <code>start()</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) Start(activePods ActivePodsFunc, sourcesReady config.SourcesReady) error &#123;</span><br><span class="line"></span><br><span class="line">    // 从磁盘读取已经分配的device信息。</span><br><span class="line">    err := m.readCheckpoint()</span><br><span class="line">    </span><br><span class="line">    // 删除socket, device plugin会通过fsnotify感知，并重新向manager注册， 因为manager 刚启动</span><br><span class="line">    err := m.removeContents(m.socketdir)</span><br><span class="line"></span><br><span class="line">    s, err := net.Listen(&quot;unix&quot;, socketPath)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		klog.Errorf(errListenSocket+&quot; %v&quot;, err)</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	m.wg.Add(1)</span><br><span class="line">	m.server = grpc.NewServer([]grpc.ServerOption&#123;&#125;...)</span><br><span class="line"></span><br><span class="line">    // m 提供注册服务</span><br><span class="line">	pluginapi.RegisterRegistrationServer(m.server, m)</span><br><span class="line">	go func() &#123;</span><br><span class="line">		defer m.wg.Done()</span><br><span class="line">		m.server.Serve(s)</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	klog.V(2).Infof(&quot;Serving device plugin registration server on %q&quot;, socketPath)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>从磁盘读取数据，已分配的 <code>device info</code> 会持久化到</li>
+<li>启动 <code>grpc server</code>, 提供 <code>device plugin</code> 注册功能, <code>client</code> 就是每个 <code>device plugin</code> 的<code>register</code>接口。当 <code>device plugin</code> 容器启动时，会自动注册</li>
+<li>注册服务的<code>server</code>侧对象是<code>m</code></li>
+</ol>
+<p>下面以 <code>nvidia device plugin</code> 启动分析注册流程</p>
+<h2 id="nvidia-device-plugin-启动流程"><a href="#nvidia-device-plugin-启动流程" class="headerlink" title="nvidia device plugin 启动流程"></a>nvidia device plugin 启动流程</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">func start(c *cli.Context, flags []cli.Flag) error &#123;</span><br><span class="line">    // 监控 fs, &quot;/var/lib/kubelet/device-plugins/&quot;</span><br><span class="line">    watcher, err := newFSWatcher(pluginapi.DevicePluginPath)</span><br><span class="line"></span><br><span class="line">    // 监控 os 信号</span><br><span class="line">    sigs := newOSWatcher(syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)</span><br><span class="line"></span><br><span class="line">	var restarting bool</span><br><span class="line">	var restartTimeout &lt;-chan time.Time</span><br><span class="line">restart:</span><br><span class="line">    // </span><br><span class="line">	if restarting &#123;</span><br><span class="line">		err := stopPlugins(plugins)</span><br><span class="line">		if err != nil &#123;</span><br><span class="line">			return fmt.Errorf(&quot;error stopping plugins from previous run: %v&quot;, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	// 主要流程，启动plugins</span><br><span class="line">	// 启动结果分成两类，启动成功的plugin，需要重启的plugin.</span><br><span class="line">	plugins, restartPlugins, err := startPlugins(c, flags, restarting)</span><br><span class="line"></span><br><span class="line">    // 只要有一个重新启动的plugin. 30s重新启动所有</span><br><span class="line">	if restartPlugins &#123;</span><br><span class="line">		klog.Infof(&quot;Failed to start one or more plugins. Retrying in 30s...&quot;)</span><br><span class="line">		restartTimeout = time.After(30 * time.Second)</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	// 表示需要重启，之前启动成功的plugins也需要先stop再start，做重新启动。</span><br><span class="line">	restarting = true</span><br><span class="line">	</span><br><span class="line">	// 启动死循环，监听事件来记录log, 重启plugin, 退出程序。</span><br><span class="line">	for &#123;</span><br><span class="line">	    select &#123;</span><br><span class="line">	            // 重启倒计时结束，触发重启</span><br><span class="line">	    		case &lt;-restartTimeout:</span><br><span class="line">			      goto restart</span><br><span class="line">			    // 检测socket 文件是否新建事件，判断kubelet重启了</span><br><span class="line">			 	case event := &lt;-watcher.Events:</span><br><span class="line">			        if event.Name == pluginapi.KubeletSocket &amp;&amp; event.Op&amp;fsnotify.Create == fsnotify.Create &#123;</span><br><span class="line">				        klog.Infof(&quot;inotify: %s created, restarting.&quot;, pluginapi.KubeletSocket)</span><br><span class="line">				        goto restart</span><br><span class="line">			        &#125;</span><br><span class="line">			     // fs 是否有其他错误</span><br><span class="line">				case err := &lt;-watcher.Errors:</span><br><span class="line">			        klog.Infof(&quot;inotify: %s&quot;, err)</span><br><span class="line">			        </span><br><span class="line">			    // 检测操作系统的信号</span><br><span class="line">			 	case s := &lt;-sigs:</span><br><span class="line">        			switch s &#123;</span><br><span class="line">        			case syscall.SIGHUP:</span><br><span class="line">        				klog.Info(&quot;Received SIGHUP, restarting.&quot;)</span><br><span class="line">        				goto restart</span><br><span class="line">        			default:</span><br><span class="line">        				klog.Infof(&quot;Received signal \&quot;%v\&quot;, shutting down.&quot;, s)</span><br><span class="line">        				goto exit</span><br><span class="line">    		    	&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">exit:</span><br><span class="line">	err = stopPlugins(plugins)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return fmt.Errorf(&quot;error stopping plugins: %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>保证将所有<code>plugins</code>一次启动成功，部分成功会先stop再restart。</li>
+<li>监控<code>fs</code>和<code>os</code>两侧事件</li>
+<li>在同一个<code>func</code>中，通过<code>restart: exit:</code>, 函数循环体，比较符合人的思维。</li>
+</ol>
+<p>下面看主要函数 <code>startPlugins</code></p>
+<h3 id="startPlugins"><a href="#startPlugins" class="headerlink" title="startPlugins"></a>startPlugins</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">func startPlugins(c *cli.Context, flags []cli.Flag, restarting bool) ([]plugin.Interface, bool, error) &#123;</span><br><span class="line"></span><br><span class="line">	config, err := loadConfig(c, flags)</span><br><span class="line">	</span><br><span class="line">	pluginManager, err := NewPluginManager(config)</span><br><span class="line">	</span><br><span class="line">	plugins, err := pluginManager.GetPlugins()</span><br><span class="line">	</span><br><span class="line">	started := 0</span><br><span class="line">	for _, p := range plugins &#123;</span><br><span class="line">	    if err := p.Start(); err != nil &#123;</span><br><span class="line">	        ...</span><br><span class="line">	    &#125;</span><br><span class="line">	    started++</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line">	return plugins, false, nil</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>加载配置</li>
+<li>新建 <code>plugi Manager</code>对象，并获取所有的<code>plugins</code>, 这侧也需要<code>plugin manager</code>来管理多个<code>plugin</code>。</li>
+<li>遍历，启动每一个<code>plugin</code></li>
+</ol>
+<h3 id="plugin-manager的创建"><a href="#plugin-manager的创建" class="headerlink" title="plugin manager的创建"></a>plugin manager的创建</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">func NewPluginManager(config *spec.Config) (manager.Interface, error) &#123;</span><br><span class="line"></span><br><span class="line">    // 多实例gpu支持3种策略</span><br><span class="line">    // 对策略进行检查，这种写法扩展时清晰</span><br><span class="line">	switch *config.Flags.MigStrategy &#123;</span><br><span class="line">	case spec.MigStrategyNone:</span><br><span class="line">	case spec.MigStrategySingle:</span><br><span class="line">	case spec.MigStrategyMixed:</span><br><span class="line">	default:</span><br><span class="line">		return nil, fmt.Errorf(&quot;unknown strategy: %v&quot;, *config.Flags.MigStrategy)</span><br><span class="line">	&#125;</span><br><span class="line">    // 初始化空的nvml lib对象</span><br><span class="line">	nvmllib := nvml.New()</span><br><span class="line">	// cdi开关</span><br><span class="line">	cdiEnabled := deviceListStrategies.IsCDIEnabled()</span><br><span class="line">	// cdi handler</span><br><span class="line">	cdiHandler, err := cdi.New(...)</span><br><span class="line">	// 新建 manager</span><br><span class="line">	m, err := manager.New(...)</span><br><span class="line">	</span><br><span class="line">	// 将`cdi spec` 写入到`/var/run/cdi/nvidia.com-gpu.json`文</span><br><span class="line">	// 形如vendor/class: nvidia.com/gpu， spec的名字就是 `nvidia.com-gpu`</span><br><span class="line">	if err := m.CreateCDISpecFile(); err != nil &#123;</span><br><span class="line">		return nil, fmt.Errorf(&quot;unable to create cdi spec file: %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	return m, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>manager 支持三种 mode,</p>
+<ul>
+<li>nvml<ul>
+<li><code>m.nvmllib</code>对象及初始化，即加载<code>libnvidia-ml.so.1</code> 这个动态库</li>
+</ul>
+</li>
+<li>tegra</li>
+<li>null</li>
+</ul>
+<p>由该方法根据<code>os</code>当前的配置确定<code>mode</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">func (m *manager) resolveMode() (string, error) &#123;</span><br><span class="line">    // 是否可以open libnvidia-ml.so.1 这个动态库</span><br><span class="line">	hasNVML := logWithReason(m.infolib.HasNvml, &quot;NVML&quot;)</span><br><span class="line">	// 检查/etc/nv_tegra_release和/sys/devices/soc0/family 文件</span><br><span class="line">	isTegra := logWithReason(m.infolib.IsTegraSystem, &quot;Tegra&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="mamager-get-plugins"><a href="#mamager-get-plugins" class="headerlink" title="mamager get plugins"></a>mamager get plugins</h3><p><code>plugin manager</code> 对象创建好后，它需要知道所管理的所有 <code>plugins</code> 对象.</p>
+<p>获取节点上和 <code>nvml</code> 资源有关的 <code>plugins</code>.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">func (m *nvmlmanager) GetPlugins() ([]plugin.Interface, error) &#123;</span><br><span class="line">    // 新建 nvml resource manager集合</span><br><span class="line">	rms, err := rm.NewNVMLResourceManagers(m.nvmllib, m.config)</span><br><span class="line"></span><br><span class="line">	var plugins []plugin.Interface</span><br><span class="line">	// 对于每一个 resource manager 都创建 对应的一个Nvidia Device Plugin对象</span><br><span class="line">	for _, r := range rms &#123; </span><br><span class="line">		plugins = append(plugins, plugin.NewNvidiaDevicePlugin(m.config, r, m.cdiHandler, m.cdiEnabled))</span><br><span class="line">	&#125;</span><br><span class="line">	return plugins, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">// returns a set of ResourceManagers, one for each NVML resource in &#x27;config&#x27;.</span><br><span class="line">func NewNVMLResourceManagers(nvmllib nvml.Interface, config *spec.Config) ([]ResourceManager, error) &#123;</span><br><span class="line">	ret := nvmllib.Init()</span><br><span class="line">	</span><br><span class="line">	// 重要, 所有device都维护在这个map中</span><br><span class="line">	deviceMap, err := NewDeviceMap(nvmllib, config)</span><br><span class="line">	</span><br><span class="line">	for resourceName, devices := range deviceMap &#123;</span><br><span class="line">		if len(devices) == 0 &#123;</span><br><span class="line">			continue</span><br><span class="line">		&#125;</span><br><span class="line">		r := &amp;nvmlResourceManager&#123;</span><br><span class="line">			resourceManager: resourceManager&#123;</span><br><span class="line">				config:   config,</span><br><span class="line">				resource: resourceName,</span><br><span class="line">				devices:  devices,</span><br><span class="line">			&#125;,</span><br><span class="line">			nvml: nvmllib,</span><br><span class="line">		&#125;</span><br><span class="line">		rms = append(rms, r)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return rms, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// DeviceMap stores a set of devices per resource name.</span><br><span class="line">type DeviceMap map[spec.ResourceName]Devices</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>对<code>config</code>中的每一个<code>nvml</code>资源，都会生成一个<code>resource manager</code>。</li>
+<li>通过 <code>nvmllib</code> 和 <code>config</code>, 构建 <code>deviceMap</code> 对象, <code>key</code>是自定义的资源的名字， <code>v</code>是设备对象。</li>
+<li>对每一种资源名字 <code>resourceName</code> 会创建一个<code>resource manager</code>，也会对应创建一个<code>device plugin</code>, 所以<code>device plugin</code> 是以资源名字为单位管理的。</li>
+<li>节点上设备是通过 <code>NewDeviceMap()</code> 维护在 <code>devicemap</code> 这个对象中, 内部比较复杂，有时间再细细研究。</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">// BuildDevice builds an rm.Device with the specified index and deviceInfo</span><br><span class="line">func BuildDevice(index string, d deviceInfo) (*Device, error) &#123;</span><br><span class="line">    // 获取 gpu 的 uuid</span><br><span class="line">	uuid, err := d.GetUUID()</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return nil, fmt.Errorf(&quot;error getting UUID device: %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">    // 获取 gpu instance device 的路径</span><br><span class="line">	paths, err := d.GetPaths()</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return nil, fmt.Errorf(&quot;error getting device paths: %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	hasNuma, numa, err := d.GetNumaNode()</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return nil, fmt.Errorf(&quot;error getting device NUMA node: %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	dev := Device&#123;&#125;</span><br><span class="line">	dev.ID = uuid</span><br><span class="line">	dev.Index = index</span><br><span class="line">	dev.Paths = paths</span><br><span class="line">	dev.Health = pluginapi.Healthy</span><br><span class="line">	if hasNuma &#123;</span><br><span class="line">		dev.Topology = &amp;pluginapi.TopologyInfo&#123;</span><br><span class="line">			Nodes: []*pluginapi.NUMANode&#123;</span><br><span class="line">				&#123;</span><br><span class="line">					ID: int64(numa),</span><br><span class="line">				&#125;,</span><br><span class="line">			&#125;,</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return &amp;dev, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="device-plugin-工作机制"><a href="#device-plugin-工作机制" class="headerlink" title="device plugin 工作机制"></a>device plugin 工作机制</h3><p>一种自定义资源名字，就对应一个<code>device plugin</code> 及其 <code>resource manager</code></p>
+<ul>
+<li>启动时刻的资源上报；</li>
+<li>用户使用时刻的调度和运行。</li>
+</ul>
+<p>核心的接口有两个</p>
+<ul>
+<li>ListAndWatch<ul>
+<li>长链接</li>
+<li>资源上报, 设备id</li>
+<li>健康检查，不健康设备从 <code>device plugin framework</code> 从可调度设备中移除</li>
+</ul>
+</li>
+<li>Allocate<ul>
+<li>创建容器时，传入要使用设备的id, 返回的参数是容器启动时，需要的设备、数据卷以及环境变量。<blockquote>
+<p><code>grpc api</code> 定义 <code>vendor/k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1/api.pb.go</code></p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="NVIDIA-k8s-device-plugin"><a href="#NVIDIA-k8s-device-plugin" class="headerlink" title="NVIDIA/k8s-device-plugin"></a><code>NVIDIA/k8s-device-plugin</code></h3><p>以<code>nvidia.com/gpu</code>这种GPU资源为例</p>
+<p>英伟达插件对象，其由多个对象组合而成。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&amp;NvidiaDevicePlugin&#123;</span><br><span class="line">	rm:                   resourceManager,</span><br><span class="line">	config:               config,</span><br><span class="line">	deviceListEnvvar:     &quot;NVIDIA_VISIBLE_DEVICES&quot;,</span><br><span class="line">	deviceListStrategies: deviceListStrategies,</span><br><span class="line">	socket:               pluginapi.DevicePluginPath + &quot;nvidia-&quot; + name + &quot;.sock&quot;,</span><br><span class="line">	cdiHandler:           cdiHandler,</span><br><span class="line">	cdiEnabled:           cdiEnabled,</span><br><span class="line">	cdiAnnotationPrefix:  *config.Flags.Plugin.CDIAnnotationPrefix,</span><br><span class="line"></span><br><span class="line">	// These will be reinitialized every</span><br><span class="line">	// time the plugin server is restarted.</span><br><span class="line">	server: nil,</span><br><span class="line">	health: nil,</span><br><span class="line">	stop:   nil,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>启动 <code>grpc server</code> 并上报 <code>kubelet</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">func (plugin *NvidiaDevicePlugin) Start() error &#123;</span><br><span class="line">	// 初始化grpc server</span><br><span class="line">	plugin.initialize()</span><br><span class="line">	</span><br><span class="line">	// 启动grpc server</span><br><span class="line">	// 每个资源都有自己的sock地址</span><br><span class="line">	err := plugin.Serve()</span><br><span class="line">	</span><br><span class="line">	// 作为grpc client， 向kubelet注册client</span><br><span class="line">	// sock地址/var/lib/kubelet/device-plugins/kubelet.sock</span><br><span class="line">	err = plugin.Register()</span><br><span class="line">	</span><br><span class="line">	go func() &#123;</span><br><span class="line">	    // 往unhealthy 这个channel写入事件， 该channel在listAndWatch接口会使用</span><br><span class="line">	    plugin.rm.CheckHealth(plugin.stop, plugin.health)</span><br><span class="line">	&#125;</span><br><span class="line">	// 本device 启动完成</span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">func (plugin *NvidiaDevicePlugin) Serve() error &#123;</span><br><span class="line">	os.Remove(plugin.socket)</span><br><span class="line">	// 监听连接本plugin的sock地址， &quot;/var/lib/kubelet/device-plugins/&quot; + &quot;nvidia-&quot; + name + &quot;.sock&quot;</span><br><span class="line">	sock, err := net.Listen(&quot;unix&quot;, plugin.socket)</span><br><span class="line"></span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    // 注册grpc server的服务端， plugin对象实现接口规定的方法</span><br><span class="line">	pluginapi.RegisterDevicePluginServer(plugin.server, plugin)</span><br><span class="line">	</span><br><span class="line">	// 因为server是阻塞式，单独启goroutine运行，</span><br><span class="line">	// 如果启动成功退出</span><br><span class="line">	go func() &#123;</span><br><span class="line">		lastCrashTime := time.Now()</span><br><span class="line">		restartCount := 0</span><br><span class="line">		for &#123;</span><br><span class="line">		    // 启动grpc server</span><br><span class="line">            err := plugin.server.Serve(sock)</span><br><span class="line">            // 成功，退出for循环, 以goroutine单独运行server</span><br><span class="line">            if err == nil &#123;</span><br><span class="line">				break</span><br><span class="line">			&#125;</span><br><span class="line">            // 当前失败重试这块代码逻辑看不到什么意义</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;()</span><br><span class="line">    </span><br><span class="line">    // 单独启server的goroutine，通过for 死循环启动server. </span><br><span class="line">    // 父goroutine dial阻塞，给新建goroutine 的for循环些时间去启动grpc server。dial说明启动成功，parent goroutine 可以退出了。</span><br><span class="line">    conn, err := plugin.dial(plugin.socket, 5*time.Second)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line">	conn.Close()</span><br><span class="line"></span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>先启动 <code>device plugin</code> 这侧的<code>server</code>, 此时并没有提供服务</li>
+<li>通过<code>register</code>向<code>kubelet</code>注册资源，注册成功后</li>
+<li>启动对<code>device</code>的健康检查</li>
+</ol>
+<p>关键点是在<code>register</code></p>
+<h4 id="register"><a href="#register" class="headerlink" title="register"></a>register</h4><p>通过 <code>grpc</code> 方式， <code>socket</code>是<code>/var/lib/kubelet/device-plugins/kubelet.sock</code>， <code>device plugin</code> 作为  <code>grpc client</code>， <code>kubelet device plugin manager</code> 作为 <code>grpc server</code>， 将获取对应设备资源的数量上报给 <code>kubelet</code> 。</p>
+<p>位置 <code>k8s-device-plugin/internal/plugin/server.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">func (plugin *NvidiaDevicePlugin) Register() error &#123;</span><br><span class="line">    // /var/lib/kubelet/device-plugins/kublelet.sock 通过这个sock 向kubelet 发起呼叫</span><br><span class="line">	conn, err := plugin.dial(pluginapi.KubeletSocket, 5*time.Second)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line">	defer conn.Close()</span><br><span class="line"></span><br><span class="line">	client := pluginapi.NewRegistrationClient(conn)</span><br><span class="line">	</span><br><span class="line">	reqt := &amp;pluginapi.RegisterRequest&#123;</span><br><span class="line">		Version:      pluginapi.Version,</span><br><span class="line">		Endpoint:     path.Base(plugin.socket),</span><br><span class="line">		ResourceName: string(plugin.rm.Resource()),</span><br><span class="line">		Options: &amp;pluginapi.DevicePluginOptions&#123;</span><br><span class="line">			GetPreferredAllocationAvailable: true,</span><br><span class="line">		&#125;,</span><br><span class="line">	&#125;</span><br><span class="line">    // 调用 server 侧的 Register 方法</span><br><span class="line">	_, err = client.Register(context.Background(), reqt)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>我在哪？，<code>Endpoint：nvidia- + &lt;name&gt; + &quot;.sock&quot;</code>， 告知kublet与device通信的sock, 因为一个节点上可能有多个设备</li>
+<li>我是谁？，<code>ResourceName</code>： 告知 <code>device plugin</code> 所管理的设备名称，是 <code>GPU</code> 还是 <code>RDMA</code>, 方便其识别管理</li>
+<li>交互协议， Version， <code>API</code> 的版本</li>
+</ul>
+<h4 id="kubelet-device-plugin-manager"><a href="#kubelet-device-plugin-manager" class="headerlink" title="kubelet device plugin manager"></a>kubelet device plugin manager</h4><p>提供 <code>device plugin</code> 的注册服务</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) Register(ctx context.Context, r *pluginapi.RegisterRequest) (*pluginapi.Empty, error) &#123;</span><br><span class="line">	klog.Infof(&quot;Got registration request from device plugin with resource name %q&quot;, r.ResourceName)</span><br><span class="line">    // 一种device plugin，就起一个协程处理，完成endpoint的注册， 一个endpoint代表一中devices设备资源</span><br><span class="line">	go m.addEndpoint(r)</span><br><span class="line">	</span><br><span class="line">	return &amp;pluginapi.Empty&#123;&#125;, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) addEndpoint(r *pluginapi.RegisterRequest) &#123;</span><br><span class="line">    // /var/lib/kubelet/device-plugins/xxx</span><br><span class="line">    // 根据传过来的 endpoint, 新建连接对象</span><br><span class="line">	new, err := newEndpointImpl(filepath.Join(m.socketdir, r.Endpoint), r.ResourceName, m.callback)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		klog.Errorf(&quot;Failed to dial device plugin with request %v: %v&quot;, r, err)</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	// 将endpoint 注册到 m.endpoints 这个map中</span><br><span class="line">	m.registerEndpoint(r.ResourceName, r.Options, new)</span><br><span class="line">	</span><br><span class="line">	// 再启动一个goroutine，去对接该 endpoint, 因为listandwatch是阻塞式的</span><br><span class="line">	go func() &#123;</span><br><span class="line">		m.runEndpoint(r.ResourceName, new)</span><br><span class="line">	&#125;()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>每一个 <code>device</code>上报自己的<code>sock</code>， <code>manager</code>启动协程去<code>dial</code>并建立<code>grpc</code>通信。</p>
+<blockquote>
+<p>在 <code>csi</code> 中通过 <code>master csi driver</code> 去支持多个 <code>csi driver</code> 是可以借鉴的。</p>
+</blockquote>
+<p>一个endpoint 就可以链接一个device</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) runEndpoint(resourceName string, e endpoint) &#123;</span><br><span class="line">    // 向 endpoint 发起 listandwatch 流式调用。</span><br><span class="line">	e.run()</span><br><span class="line">	e.stop()</span><br><span class="line"></span><br><span class="line">	m.mutex.Lock()</span><br><span class="line">	defer m.mutex.Unlock()</span><br><span class="line">    // listandwatch 异常了，表示device资源异常</span><br><span class="line">	if old, ok := m.endpoints[resourceName]; ok &amp;&amp; old.e == e &#123;</span><br><span class="line">		m.markResourceUnhealthy(resourceName)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	klog.V(2).Infof(&quot;Endpoint (%s, %v) became unhealthy&quot;, resourceName, e)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>kubelet device plugin manager</code> 化身为 <code>client</code>, 调用 <code>device plugin</code> 的 <code>ListAndWatch</code> 流式 <code>response</code>。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">func (e *endpointImpl) run() &#123;</span><br><span class="line">	stream, err := e.client.ListAndWatch(context.Background(), &amp;pluginapi.Empty&#123;&#125;)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		klog.Errorf(errListAndWatch, e.resourceName, err)</span><br><span class="line"></span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">    // 不停从流拿到response</span><br><span class="line">    </span><br><span class="line">	for &#123;</span><br><span class="line">		response, err := stream.Recv()</span><br><span class="line">		if err != nil &#123;</span><br><span class="line">			klog.Errorf(errListAndWatch, e.resourceName, err)</span><br><span class="line">			return</span><br><span class="line">		&#125;</span><br><span class="line">        // 拿到上报额device对象列表</span><br><span class="line">		devs := response.Devices</span><br><span class="line">		klog.V(2).Infof(&quot;State pushed for device plugin %s&quot;, e.resourceName)</span><br><span class="line"></span><br><span class="line">		var newDevs []pluginapi.Device</span><br><span class="line">		for _, d := range devs &#123;</span><br><span class="line">			newDevs = append(newDevs, *d)</span><br><span class="line">		&#125;</span><br><span class="line">        // 通知 manager, 调整可用资源信息</span><br><span class="line">		e.callback(e.resourceName, newDevs)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上报上来的 <code>device</code> 对象状态更新</p>
+<p><code>device</code> 对象样例</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">struct Device &#123;</span><br><span class="line">    ID: &quot;GPU-fef8089b-4820-abfc-e83e-94318197576e&quot;,</span><br><span class="line">    Health: &quot;Healthy&quot;,</span><br><span class="line">    Topology:</span><br><span class="line">      Node:</span><br><span class="line">       ID: 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>listandWatch</code>只是拿到如上信息， 控制面需要用<code>device id</code>, 让数据面准备容器可以使用device的参数</p>
+<h4 id="ListAndWatch"><a href="#ListAndWatch" class="headerlink" title="ListAndWatch"></a>ListAndWatch</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">// ListAndWatch lists devices and update that list according to the health status</span><br><span class="line">func (plugin *NvidiaDevicePlugin) ListAndWatch(e *pluginapi.Empty, s pluginapi.DevicePlugin_ListAndWatchServer) error &#123;</span><br><span class="line">    // 主动上报一次所有的device</span><br><span class="line">	s.Send(&amp;pluginapi.ListAndWatchResponse&#123;Devices: plugin.apiDevices()&#125;)</span><br><span class="line">   </span><br><span class="line">    // 不停的对事件进行监听 </span><br><span class="line">	for &#123;</span><br><span class="line">		select &#123;</span><br><span class="line">		case &lt;-plugin.stop:</span><br><span class="line">			return nil</span><br><span class="line"></span><br><span class="line">		case d := &lt;-plugin.health:</span><br><span class="line">		    // 检测到device不健康了，则修改device的health状态，并再次主动上报， kubelet侧过滤掉不健康的device, 防止pod调度到不可用的device node上</span><br><span class="line">		    // 目前还缺少device健康恢复的逻辑，可以开发FIXME</span><br><span class="line">			// FIXME: there is no way to recover from the Unhealthy state.</span><br><span class="line">			d.Health = pluginapi.Unhealthy</span><br><span class="line">			klog.Infof(&quot;&#x27;%s&#x27; device marked unhealthy: %s&quot;, plugin.rm.Resource(), d.ID)</span><br><span class="line">			s.Send(&amp;pluginapi.ListAndWatchResponse&#123;Devices: plugin.apiDevices()&#125;)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code>
+也就是说 `listAndWatch` 总是会拿到所有的 `device` 列表，但是根据`device`的健康检查不时去更新`device`的健康状态。
+
+因为没有健康恢复，如果`device`都挨个不健康一次又恢复，当前版本是不能再次启动它，到最后就是没有可用的`device`了, 这是一个潜在的重大缺陷。
+
+
+#### kubelet 更新device
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) genericDeviceUpdateCallback(resourceName string, devices []pluginapi.Device) &#123;</span><br><span class="line">	m.mutex.Lock()</span><br><span class="line">	// 每次更新都新建healthyDevices 和 unhealthyDevices 集合</span><br><span class="line">	// 也就是每次都是最新状态，全量更新。</span><br><span class="line">	m.healthyDevices[resourceName] = sets.NewString()</span><br><span class="line">	m.unhealthyDevices[resourceName] = sets.NewString()</span><br><span class="line">	m.allDevices[resourceName] = make(map[string]pluginapi.Device)</span><br><span class="line">	for _, dev := range devices &#123;</span><br><span class="line">		m.allDevices[resourceName][dev.ID] = dev</span><br><span class="line">		if dev.Health == pluginapi.Healthy &#123;</span><br><span class="line">			m.healthyDevices[resourceName].Insert(dev.ID)</span><br><span class="line">		&#125; else &#123;</span><br><span class="line">			m.unhealthyDevices[resourceName].Insert(dev.ID)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	m.mutex.Unlock()</span><br><span class="line">	// 将healthy device信息和使用了该devices的pod信息记录在/var/lib/kubelet/device-plugins/kubelet_internal_checkpoint文件</span><br><span class="line">	if err := m.writeCheckpoint(); err != nil &#123;</span><br><span class="line">		klog.Errorf(&quot;writing checkpoint encountered %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+#### ManagerImpl.Allocate
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">func (kl *Kubelet) HandlePodAdditions(pods []*v1.Pod) &#123;</span><br><span class="line"></span><br><span class="line">	for _, pod := range pods &#123;</span><br><span class="line">			if !kl.podWorkers.IsPodTerminationRequested(pod.UID) &#123;</span><br><span class="line">    			activePods := kl.filterOutInactivePods(existingPods)</span><br><span class="line">    </span><br><span class="line">    			// Check if we can admit the pod; if not, reject it.</span><br><span class="line">    			if ok, reason, message := kl.canAdmitPod(activePods, pod); !ok &#123;</span><br><span class="line">    				kl.rejectPod(pod, reason, message)</span><br><span class="line">    				continue</span><br><span class="line">    			&#125;</span><br><span class="line">	    	&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (kl *Kubelet) rejectPod(pod *v1.Pod, reason, message string) &#123;</span><br><span class="line">	kl.recorder.Eventf(pod, v1.EventTypeWarning, reason, message)</span><br><span class="line">	kl.statusManager.SetPodStatus(pod, v1.PodStatus&#123;</span><br><span class="line">		Phase:   v1.PodFailed,</span><br><span class="line">		Reason:  reason,</span><br><span class="line">		Message: &quot;Pod &quot; + message&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+1. 对于传入的每一个 Pod ，如果它没有被 terminate(查看podwork.podSyncStatuses中terminatingAt字段是否被设置)，则通过 `canAdmitPod` 检查是否可以允许该 Pod 创建。
+2. 否则拒绝pod， 即不去派活（`dispatchwork`），报告事件并设置pod的Status失败的原因, 这样做的好处是提前检查pod的依赖资源是否ok, 否则去派活最后缺因为依赖资源不满足而失败，浪费了运行时了。
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">func (kl *Kubelet) canAdmitPod(pods []*v1.Pod, pod *v1.Pod) (bool, string, string) &#123;</span><br><span class="line">	attrs := &amp;lifecycle.PodAdmitAttributes&#123;Pod: pod, OtherPods: pods&#125;</span><br><span class="line">	for _, podAdmitHandler := range kl.admitHandlers &#123;</span><br><span class="line">		if result := podAdmitHandler.Admit(attrs); !result.Admit &#123;</span><br><span class="line">			return false, result.Reason, result.Message</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return true, &quot;&quot;, &quot;&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+每一个`activePod`都要经过`kubelet`中`admintHandlers`的准允检查，即对`pod`的资源做一些控制面的提前判断，目的是保证数据面的成功，只有有一个不允许，则不允许派活并在`pod Status`设置失败的原因。
+
+
+- evictionAdmitHandler
+    - critical pod 直接允许
+    - 根据 `nodeConditions` 对象得到当前node资源
+    - 当节点有内存压力时，拒绝创建`best effort`的pod，还有其它条件先略过。当然如果`best effort` 容忍了`memory pressure taints`也是准许pod创建的。
+- TopologyPodAdmitHandle
+    - 拒绝创建因为`Topology locality`冲突而无法分配资源的pod
+
+`kubelet` 创建时，通过`addPodAdmitHandler`(), 添加了8个`handler`
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">klet.admitHandlers.AddPodAdmitHandler(evictionAdmitHandler)</span><br><span class="line">klet.admitHandlers.AddPodAdmitHandler(sysctlsAllowlist)</span><br><span class="line">klet.admitHandlers.AddPodAdmitHandler(klet.containerManager.GetAllocateResourcesPodAdmitHandler())</span><br><span class="line">klet.admitHandlers.AddPodAdmitHandler(lifecycle.NewPredicateAdmitHandler(klet.getNodeAnyWay, criticalPodAdmissionHandler, klet.containerManager.UpdatePluginResources))</span><br><span class="line">klet.softAdmitHandlers.AddPodAdmitHandler(lifecycle.NewAppArmorAdmitHandler(klet.appArmorValidator))</span><br><span class="line">klet.softAdmitHandlers.AddPodAdmitHandler(lifecycle.NewNoNewPrivsAdmitHandler(klet.containerRuntime))</span><br><span class="line">klet.softAdmitHandlers.AddPodAdmitHandler(lifecycle.NewProcMountAdmitHandler(klet.containerRuntime))</span><br><span class="line">	klet.admitHandlers.AddPodAdmitHandler(shutdownAdmitHandler)</span><br></pre></td></tr></table></figure>
+
+与 `DevicePlugin` 相关的则是 `containerManager` 的 `resourceAllocator`，
+它由 `deviceManager` 和 `cpuManager` 的 `memoryManager` 组成， 分别调用这三者的 `Allocate()` 分配资源。
+资源若分配失败，pod就不用去创建了。
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">func (cm *containerManagerImpl) GetAllocateResourcesPodAdmitHandler() lifecycle.PodAdmitHandler &#123;</span><br><span class="line">	if utilfeature.DefaultFeatureGate.Enabled(kubefeatures.TopologyManager) &#123;</span><br><span class="line">		return cm.topologyManager</span><br><span class="line">	&#125;</span><br><span class="line">	return &amp;resourceAllocator&#123;cm.cpuManager, cm.memoryManager, cm.deviceManager&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">func (m *resourceAllocator) Admit(attrs *lifecycle.PodAdmitAttributes) lifecycle.PodAdmitResult &#123;</span><br><span class="line">	pod := attrs.Pod</span><br><span class="line"></span><br><span class="line">    // 遍历当前pod的InitContainers + Containers</span><br><span class="line">	for _, container := range append(pod.Spec.InitContainers, pod.Spec.Containers...) &#123;</span><br><span class="line">		</span><br><span class="line">		// device 的 allocate</span><br><span class="line">		err := m.deviceManager.Allocate(pod, &amp;container)</span><br><span class="line">		if err != nil &#123;</span><br><span class="line">			return admission.GetPodAdmitResult(err)</span><br><span class="line">		&#125;</span><br><span class="line">        // cpu的manager</span><br><span class="line">		if m.cpuManager != nil &#123;</span><br><span class="line">			err = m.cpuManager.Allocate(pod, &amp;container)</span><br><span class="line">			if err != nil &#123;</span><br><span class="line">				return admission.GetPodAdmitResult(err)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">        // memroy的allocate</span><br><span class="line">		if m.memoryManager != nil &#123;</span><br><span class="line">			err = m.memoryManager.Allocate(pod, &amp;container)</span><br><span class="line">			if err != nil &#123;</span><br><span class="line">				return admission.GetPodAdmitResult(err)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return admission.GetPodAdmitResult(nil)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+这里查看 `deviceManager.Allocate()`
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) Allocate(pod *v1.Pod, container *v1.Container) error &#123;</span><br><span class="line"></span><br><span class="line">	if err := m.allocateContainerResources(pod, container, m.devicesToReuse[string(pod.UID)]); err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (m *ManagerImpl) allocateContainerResources(pod *v1.Pod, container *v1.Container, devicesToReuse map[string]sets.String) error &#123;</span><br><span class="line">    // 扩展资源不允许overcommitted</span><br><span class="line">    // 因为device plugin 遍历扩展资源， 所以request和limit必须相等， 因为迭代limits就足够了</span><br><span class="line">	for k, v := range container.Resources.Limits &#123;</span><br><span class="line">	</span><br><span class="line">	    // 分配dev， 这里是控制面？</span><br><span class="line">		allocDevices, err := m.devicesToAllocate(podUID, contName, resource, needed, devicesToReuse[resource])</span><br><span class="line"></span><br><span class="line">        // 向device plugin 发起 dev的allocation 请求。</span><br><span class="line">        // 这里是数据面？</span><br><span class="line">        // 参数是string slice</span><br><span class="line">        devs := allocDevices.UnsortedList()</span><br><span class="line">        resp, err := eI.e.allocate(devs)</span><br><span class="line">        // 数据面流程结束，将分配结果维护到podDevices缓存中，为了控制面做决策时使用</span><br><span class="line">        m.podDevices.insert(podUID, contName, resource, allocDevicesWithNUMA, resp.ContainerResponses[0])</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+控制面是咋分配的devices呢？
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) devicesToAllocate(podUID, contName, resource string, required int, reusableDevices sets.String) (sets.String, error) &#123;</span><br><span class="line">    // 从manager维护的podDevices找是否device已经分配了，适用于容器重启case</span><br><span class="line">	devices := m.podDevices.containerDevices(podUID, contName, resource)</span><br><span class="line">	</span><br><span class="line">	// 到这里说明新分配device, 则从manager 维护的healthyDevices里找，这个对象是device plugin 注册时主动上报的健康资源集合。</span><br><span class="line">	// 如果没有找到，则表明资源没注册</span><br><span class="line">	if _, ok := m.healthyDevices[resource]; !ok &#123;</span><br><span class="line">		return nil, fmt.Errorf(&quot;can&#x27;t allocate unregistered device %s&quot;, resource)</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	// 闭包函数，将分配的devices列表，更新到m.allocatedDevices 和 allocated 缓存中</span><br><span class="line">	allocateRemainingFrom := func(devices sets.String) bool &#123;</span><br><span class="line">		for device := range devices.Difference(allocated) &#123;</span><br><span class="line">			m.allocatedDevices[resource].Insert(device)</span><br><span class="line">			allocated.Insert(device)</span><br><span class="line">			needed--</span><br><span class="line">			if needed == 0 &#123;</span><br><span class="line">				return true</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		return false</span><br><span class="line">	&#125;</span><br><span class="line">	// 到这里说明，device是在上报资源中，而且是第一次分配使用</span><br><span class="line">	</span><br><span class="line">    // 1. 尝试init container分配的device里分，这部分device是reusableDevices， container可重复使用的device。 将device更新到m.allocatedDevices</span><br><span class="line"></span><br><span class="line">   	if allocateRemainingFrom(reusableDevices) &#123;</span><br><span class="line">		return allocated, nil</span><br><span class="line">	&#125;</span><br><span class="line">   // 到这里说明 device 只有被container 单独使用，没有与init container复用</span><br><span class="line">   </span><br><span class="line">   	devicesInUse := m.allocatedDevices[resource]</span><br><span class="line">	// Gets Available devices.</span><br><span class="line">	// 还是得从healthyDevices里找可用的device资源</span><br><span class="line">	// difference表示 做差。 healthyDevice - devicesInUse</span><br><span class="line">	available := m.healthyDevices[resource].Difference(devicesInUse)</span><br><span class="line">	</span><br><span class="line">	// 根据numa 亲和性区过滤出 available device集合</span><br><span class="line">	aligned, unaligned, noAffinity := m.filterByAffinity(podUID, contName, resource, available)</span><br><span class="line"></span><br><span class="line">    // 从最后aligned 的device里分配合适的 device </span><br><span class="line">	if allocateRemainingFrom(aligned) &#123;</span><br><span class="line">		return allocated, nil</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+#### plugin Allocate
+
+
+`Allocate` 接口给容器加上 `NVIDIA_VISIBLE_DEVICES` 环境变量，设置了相关的 `DeviceSpec`参数，将 `Response` 返回给 `Kubelet`。
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">// 入参 reqs, 因为一个contianers可以申请多个device资源</span><br><span class="line">func (plugin *NvidiaDevicePlugin) Allocate(ctx context.Context, reqs *pluginapi.AllocateRequest) (*pluginapi.AllocateResponse, error) &#123;</span><br><span class="line">	responses := pluginapi.AllocateResponse&#123;&#125;</span><br><span class="line">	</span><br><span class="line">	for _, req := range reqs.ContainerRequests &#123;</span><br><span class="line">		if plugin.config.Sharing.TimeSlicing.FailRequestsGreaterThanOne &amp;&amp; rm.AnnotatedIDs(req.DevicesIDs).AnyHasAnnotations() &#123;</span><br><span class="line">		    </span><br><span class="line">		    // gpu共享配置中，时分复用请求资源的资源只能是一个。</span><br><span class="line">			if len(req.DevicesIDs) &gt; 1 &#123;</span><br><span class="line">				return nil, fmt.Errorf(&quot;request for &#x27;%v: %v&#x27; too large: maximum request size for shared resources is 1&quot;, plugin.rm.Resource(), len(req.DevicesIDs))</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">        // 组装 response</span><br><span class="line">		response, err := plugin.getAllocateResponse(req.DevicesIDs)</span><br><span class="line">		responses.ContainerResponses = append(responses.ContainerResponses, response)</span><br><span class="line">	&#125;</span><br><span class="line">	return &amp;responses, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">func (plugin *NvidiaDevicePlugin) getAllocateResponse(requestIds []string) (*pluginapi.ContainerAllocateResponse, error) &#123;</span><br><span class="line">	deviceIDs := plugin.deviceIDsFromAnnotatedDeviceIDs(requestIds)</span><br><span class="line"></span><br><span class="line">	responseID := uuid.New().String()</span><br><span class="line">	response, err := plugin.getAllocateResponseForCDI(responseID, deviceIDs)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return nil, fmt.Errorf(&quot;failed to get allocate response for CDI: %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    // device env</span><br><span class="line">    // 有两种设备列表的方式</span><br><span class="line">    // key都是NVIDIA_VISIBLE_DEVICES， 区别在于value</span><br><span class="line">    // 如果是envvar 方式，则value是id1,id2,id3</span><br><span class="line">    // 如果是volume-mounts方式， value就一个值，“/var/run/nvidia-container-devices&quot;</span><br><span class="line">	if plugin.deviceListStrategies.Includes(spec.DeviceListStrategyEnvvar) &#123;</span><br><span class="line">		response.Envs = plugin.apiEnvs(plugin.deviceListEnvvar, deviceIDs)</span><br><span class="line">	&#125;</span><br><span class="line">	// device mount </span><br><span class="line">	if plugin.deviceListStrategies.Includes(spec.DeviceListStrategyVolumeMounts) &#123;</span><br><span class="line">		response.Envs = plugin.apiEnvs(plugin.deviceListEnvvar, []string&#123;deviceListAsVolumeMountsContainerPathRoot&#125;)</span><br><span class="line">		response.Mounts = plugin.apiMounts(deviceIDs)</span><br><span class="line">	&#125;</span><br><span class="line">	// device spec， 设备的详细说明</span><br><span class="line">	if *plugin.config.Flags.Plugin.PassDeviceSpecs &#123;</span><br><span class="line">		response.Devices = plugin.apiDeviceSpecs(*plugin.config.Flags.NvidiaDriverRoot, requestIds)</span><br><span class="line">	&#125;</span><br><span class="line">	if *plugin.config.Flags.GDSEnabled &#123;</span><br><span class="line">		response.Envs[&quot;NVIDIA_GDS&quot;] = &quot;enabled&quot;</span><br><span class="line">	&#125;</span><br><span class="line">	if *plugin.config.Flags.MOFEDEnabled &#123;</span><br><span class="line">		response.Envs[&quot;NVIDIA_MOFED&quot;] = &quot;enabled&quot;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return &amp;response, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+`nvidia device plugin` 对象创建时设置了存放`device`列表的环境变量名字是 `NVIDIA_VISIBLE_DEVICES`。
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&amp;NvidiaDevicePlugin&#123;</span><br><span class="line">		rm:                   resourceManager,</span><br><span class="line">		config:               config,</span><br><span class="line">		deviceListEnvvar:     &quot;NVIDIA_VISIBLE_DEVICES&quot;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">func (plugin *NvidiaDevicePlugin) apiEnvs(envvar string, deviceIDs []string) map[string]string &#123;</span><br><span class="line">	return map[string]string&#123;</span><br><span class="line">		envvar: strings.Join(deviceIDs, &quot;,&quot;),</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (plugin *NvidiaDevicePlugin) apiMounts(deviceIDs []string) []*pluginapi.Mount &#123;</span><br><span class="line">	var mounts []*pluginapi.Mount</span><br><span class="line">    // 每一个设备生成mount对象，包含</span><br><span class="line">    // hostPath: /dev/null, 以卷挂在方式呈现的设备列表在host侧的路径，</span><br><span class="line">    // 在容器侧的路径： /var/run/nvidia-container-devices</span><br><span class="line">	for _, id := range deviceIDs &#123;</span><br><span class="line">		mount := &amp;pluginapi.Mount&#123;</span><br><span class="line">			HostPath:      deviceListAsVolumeMountsHostPath,</span><br><span class="line">			ContainerPath: filepath.Join(deviceListAsVolumeMountsContainerPathRoot, id),</span><br><span class="line">		&#125;</span><br><span class="line">		mounts = append(mounts, mount)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return mounts</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+1. `response` 包含 `env， mounts, devices` 参数
+2. 其中环境变量的key是`NVIDIA_VISIBLE_DEVICES`
+3. allocate的作用非常简单，将 `device-id` 转成 `NVIDIA_VISIBLE_DEVICES` 环境变量， `gpu-container-runtime` 判断有该变量，知道该容器需要映射gpu设备，则将设备映射到容器中，且使用device的库`Nvidia Driver Lib` 也映射到容器中
+4. `allocate` 返回的结果没有报错，`resourceAllocator.admit()`方法没有拒绝pod执行, 则派活调用cri去创建pod的运行实体
+
+
+&gt; 接口
+`vendor/k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1/api.pb.go`
+
+### device的状态管理
+
+根据`manager`维护的 `healthyDevices` 和 `unhealthyDevices` 统计总的device, 当前可用的device。该接口经过NodeStatus调用，持久化到etcd中，并更新node对象状态
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) GetCapacity() (v1.ResourceList, v1.ResourceList, []string) &#123;</span><br><span class="line"></span><br><span class="line">	for resourceName, devices := range m.healthyDevices &#123;</span><br><span class="line">	  ...</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    for resourceName, devices := range m.unhealthyDevices &#123;</span><br><span class="line">      ...</span><br><span class="line">    &#125;</span><br><span class="line">	return capacity, allocatable, deletedResources.UnsortedList()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+位置: `pkg/kubelet/kubelet_node_status.go`
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">func (kl *Kubelet) defaultNodeStatusFuncs() []func(*v1.Node) error &#123;</span><br><span class="line">	setters = append(setters,</span><br><span class="line">	nodestatus.MachineInfo(kl.containerManager.GetDevicePluginResourceCapacity)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+### 运行pod时加载device资源
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">func (m *kubeGenericRuntimeManager) startContainer(podSandboxID string, podSandboxConfig *runtimeapi.PodSandboxConfig, spec *startSpec, pod *v1.Pod, podStatus *kubecontainer.PodStatus, pullSecrets []v1.Secret, podIP string, podIPs []string) (string, error) &#123;</span><br><span class="line"></span><br><span class="line">	// Step 1: pull the image.</span><br><span class="line">	imageRef, msg, err := m.imagePuller.EnsureImageExists(pod, container, pullSecrets, podSandboxConfig)</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line">	// 重要逻辑：生成容器的配置对象，该步骤就是真正使用device plugin的3个参数，并构建 containerConfig 对象， 使进一步传递。</span><br><span class="line">	containerConfig, cleanupAction, err := m.generateContainerConfig(container, pod, restartCount, podIP, imageRef, podIPs, target)</span><br><span class="line"></span><br><span class="line">	//  将allocated cpus 和 memory numa node 信息丰富containerConfig对象。</span><br><span class="line">	err = m.internalLifecycle.PreCreateContainer(pod, container, containerConfig)</span><br><span class="line">	</span><br><span class="line">	// 调用runtime 服务的CreateContainer，并将容器的配置参数containerConfig传入运行时。</span><br><span class="line">	containerID, err := m.runtimeService.CreateContainer(podSandboxID, containerConfig, podSandboxConfig)</span><br><span class="line">	</span><br><span class="line">	// 容器创建好后，预启动，将新containerid 加入到 cpumanager、memoryManager、topologyManager进行管理</span><br><span class="line">	err = m.internalLifecycle.PreStartContainer(pod, container, containerID)</span><br><span class="line">	</span><br><span class="line">	// Step 3: start the container.</span><br><span class="line">	err = m.runtimeService.StartContainer(containerID)</span><br><span class="line">	</span><br><span class="line">	// 容器启动后的hook	</span><br><span class="line">	// Step 4: execute the post start hook.</span><br><span class="line">	if container.Lifecycle != nil &amp;&amp; container.Lifecycle.PostStart != nil &#123;</span><br><span class="line">	...</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">// 产生运行容器的配置项</span><br><span class="line">// GetResources returns RunContainerOptions with devices, mounts, and env fields populated for</span><br><span class="line">// extended resources required by container.</span><br><span class="line">func (kl *Kubelet) GenerateRunContainerOptions(pod *v1.Pod, container *v1.Container, podIP string, podIPs []string) (*kubecontainer.RunContainerOptions, func(), error) &#123;</span><br><span class="line">    </span><br><span class="line">    // 获取本container所需要的extended resource参数，env、device、mounts</span><br><span class="line">	opts, err := kl.containerManager.GetResources(pod, container)</span><br><span class="line">	</span><br><span class="line">	// pod host的hostname及其domain</span><br><span class="line">	hostname, hostDomainName, err := kl.GeneratePodHostNameAndDomain(pod)</span><br><span class="line">	</span><br><span class="line">	// 该pod attach&amp;&amp; mount成功的volume map。仅仅是volume本身的统计</span><br><span class="line">	volumes := kl.volumeManager.GetMountedVolumesForPod(podName)</span><br><span class="line">	</span><br><span class="line">	// 在pod sepc中， envFrom.ConfigMapRe、envFrom.SecretRef 和 container.Env注入的环境变量</span><br><span class="line">	envs, err := kl.makeEnvironmentVariables(pod, container, podIP, podIPs)</span><br><span class="line">	</span><br><span class="line">	// pod 中volume的挂载点，即统计container.VolumeMounts</span><br><span class="line">	mounts, cleanupAction, err := makeMounts(pod, kl.getPodDir(pod.UID), container, hostname, hostDomainName, podIPs, volumes, kl.hostutil, kl.subpather, opts.Envs, supportsSingleFileMapping)</span><br><span class="line"></span><br><span class="line">    // 所有pod的配置项，都封装到opts对象中</span><br><span class="line">	return opts, cleanupAction, nil</span><br><span class="line">	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+这些不就是`oci spec` 中所需要的配置参数么， 原理是在这生成，并传给底层运行时的, 包括 `device plugin`。
+
+为容器扩展资源所需要的 `devices, mounts, and env fields`
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">func (cm *containerManagerImpl) GetResources(pod *v1.Pod, container *v1.Container) (*kubecontainer.RunContainerOptions, error) &#123;</span><br><span class="line">	</span><br><span class="line">	opts := &amp;kubecontainer.RunContainerOptions&#123;&#125;</span><br><span class="line"></span><br><span class="line">    // 为pod分配device 资源选项。</span><br><span class="line">    // 从 conatiner manager 中的device manager子模块所维护的podDevice这个对象，获取设备的信息。</span><br><span class="line">	devOpts, err := cm.deviceManager.GetDeviceRunContainerOptions(pod, container)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return nil, err</span><br><span class="line">	&#125; else if devOpts == nil &#123;</span><br><span class="line">		return opts, nil</span><br><span class="line">	&#125;</span><br><span class="line">	// 设备如下信息</span><br><span class="line">	opts.Devices = append(opts.Devices, devOpts.Devices...)</span><br><span class="line">	opts.Mounts = append(opts.Mounts, devOpts.Mounts...)</span><br><span class="line">	opts.Envs = append(opts.Envs, devOpts.Envs...)</span><br><span class="line">	opts.Annotations = append(opts.Annotations, devOpts.Annotations...)</span><br><span class="line">	return opts, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+至此 `pod` 将 `device` 配置获取到（包括，`mount, device, env`），并以 `containerConfig` 对象形式传给`CRI`了
+
+
+## nvidia-container-runtime
+
+容器模型`containerd-shim` 通过`runc`去执行容器。
+OCI 规范了 `runtime-spec` 和 `image-spec`, `runc`就是 `runtine-spec`的一种实现，而`nvidia-container-runtime`是为了支持容器使用GPU 而做的另一种 `runtime-spec` 的实现.
+
+原理是利用 `runtime-spec`规范中提到的`PreStart Hook`机制在执行完`runc start`之后，在真正的用户进程启动之前，执行`nviadia-container-runtime-hook`进行一些操作，其针对`GPU`设备的挂载和`device cgroup`的设置是通过一个由C和C++实现的叫做`nvidia-container-cli（libnvidia-container）`的程序实现的;
+
+![gpu-cri.png](how-k8s-use-gpu-by-device-plugin/gpu-cri.png)
+
+- 中间的runc表示使用runc已经将容器构建起来了，只是容器进程启动前要执行hook; 此时是查看环境`NVIDIA_VISIBLE_DEVICES`
+    - 有， 通过该env的value拿到gpu id， 并调用`nvidia-container-cli configure --device=ID(s)` 来将gpu 卡挂在到容器中。
+    - 没有，则直接启动用户进程，和之前的runc逻辑完全一致。
+2. `nvidia-docker2` 是在`runc`的基础上增加了`hook`， 所以它完全可以替代`runc`。
+
+
+# REF
+1. https://zwforrest.github.io/post/devicemanager%E5%8E%9F%E7%90%86%E5%8F%8A%E5%88%86%E6%9E%90/
+2. https://www.infoq.cn/article/tdfgiikxh9bcgknywl6s
+</code></pre>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                
+                
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/GPU/"># GPU</a>
+                    
+                        <a href="/tags/device-plugin/"># device plugin</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2023/06/02/%E4%BB%8E-csi-%E5%88%87%E5%85%A5%E5%AD%A6%E4%B9%A0-grpc/">从 csi 切入学习 grpc</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Mingeer | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>
