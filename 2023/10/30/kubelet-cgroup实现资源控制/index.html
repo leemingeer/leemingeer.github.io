@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Mingeer">
+
+
+
+
+
+<title>kubelet cgroup实现资源控制 | Mingeer</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Ming&#39;s Time</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Ming&#39;s Time</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">kubelet cgroup实现资源控制</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Mingeer</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">October 30, 2023&nbsp;&nbsp;20:28:34</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/kubernetes/">kubernetes</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p>[toc]<br>网络上已经有很多介绍pod cgroup的文章，单纯的文字描述总感觉在理解其含义前面加了一层模糊的砂纸。所以想从源码层面加深这方面的认知。</p>
+<p>pod的底层运行时在kubelet侧是通过<code>ContaienrManager</code>管理的,设计到容器状态的，比如<code>cgroup</code>，<code>device</code>等都由其管理。代码位于<code>pkg/kubelet/cm/container_manager_linux.go</code></p>
+<p>cgroup的管理欧cgroupfs v1&amp;v2及sysetmd 方式，需要先确定使用的cgroup版本。</p>
+<blockquote>
+<p>如何判断使用的 cgroup 版本</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">stat -fc %T /sys/fs/cgroup/</span><br><span class="line">- 对于cgroup v2，输出为 cgroup2fs， 也就是代码中unified统一的api格式</span><br><span class="line">- 对于cgroup v1，输出为 tmpfs.</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="NewContainerManager"><a href="#NewContainerManager" class="headerlink" title="NewContainerManager"></a>NewContainerManager</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">func NewContainerManager() (ContainerManager, error) &#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	cgroupManager := NewCgroupManager(subsystems, nodeConfig.CgroupDriver)</span><br><span class="line">	</span><br><span class="line">	// 每一种pod qos设置一个cgroup</span><br><span class="line">	// 默认的cgroup名字是&quot;kubepods&quot;，设置为pod cgroup的根目录</span><br><span class="line">	if nodeConfig.CgroupsPerQOS &#123;</span><br><span class="line">	</span><br><span class="line">	    // kubepods 组</span><br><span class="line">		cgroupRoot = NewCgroupName(cgroupRoot, defaultNodeAllocatableCgroupName)</span><br><span class="line">	&#125;</span><br><span class="line">	cm := &amp;containerManagerImpl&#123;&#125;</span><br><span class="line">	// 拓扑管理</span><br><span class="line">	cm.topologyManager, err = topologymanager.NewManager()</span><br><span class="line">	</span><br><span class="line">	// device管理</span><br><span class="line">	cm.deviceManager, err = devicemanager.NewManagerImpl(machineInfo.Topology, cm.topologyManager)</span><br><span class="line">	</span><br><span class="line">    // </span><br><span class="line">	cm.cpuManager, err = cpumanager.NewManager()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>目录结构也有所体现</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">kubelet/cm/cpumanager</span><br><span class="line">           devicemanager</span><br><span class="line">           topologymanager</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<p>对于<code>cpu manager</code>支持两种cpu绑核模式</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">func NewManager() (Manager, error) &#123;</span><br><span class="line">	switch policyName(cpuPolicyName) &#123;</span><br><span class="line"></span><br><span class="line">	case PolicyNone:</span><br><span class="line">		policy = NewNonePolicy()</span><br><span class="line">	</span><br><span class="line">	case PolicyStatic:	</span><br><span class="line">		policy, err = NewStaticPolicy(topo, numReservedCPUs, specificCPUs, affinity)</span><br><span class="line"></span><br><span class="line">    return  &amp;manager&#123;policy: policy&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="containerManagerImpl"><a href="#containerManagerImpl" class="headerlink" title="containerManagerImpl"></a>containerManagerImpl</h2><p><code>ContaienrManager</code>的底层实现对象是<code>containerManagerImpl</code><br> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">func (cm *containerManagerImpl) Start() error&#123;</span><br><span class="line">    </span><br><span class="line">	if utilfeature.DefaultFeatureGate.Enabled(kubefeatures.CPUManager) &#123;</span><br><span class="line">	</span><br><span class="line">	// 启动cpu manager</span><br><span class="line">	// 如果是static, 则启动reconcile loop</span><br><span class="line">	err = cm.cpuManager.Start()</span><br><span class="line">	</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	if err := cm.setupNode(activePods); err != nil &#123;</span><br><span class="line">	return err</span><br><span class="line">&#125;</span><br><span class="line">// Starts device manager.</span><br><span class="line">if err := cm.deviceManager.Start(); err != nil &#123;</span><br><span class="line">	return err</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure></p>
+<p>下面分析主要流程</p>
+<h3 id="setupNode"><a href="#setupNode" class="headerlink" title="setupNode"></a>setupNode</h3> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">func (cm *containerManagerImpl) setupNode() error &#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    // 对容器启动基于qos的cgroup等级划分</span><br><span class="line">    // 即guarantee在最上层的</span><br><span class="line">    // burstable和best effort最低一级各自的cgroup中</span><br><span class="line">	if cm.NodeConfig.CgroupsPerQOS &#123;</span><br><span class="line">	    // 创建/sys/fs/cgroup/kubepods/目录</span><br><span class="line">	if err := cm.createNodeAllocatableCgroups(); err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	// 启动qos cm</span><br><span class="line">	// getNodeAllocatableAbsolute 是allocatable-kubereserved-systemreserved</span><br><span class="line">	err = cm.qosContainerManager.Start(cm.getNodeAllocatableAbsolute, activePods)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return fmt.Errorf(&quot;failed to initialize top level QOS containers: %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">	// Enforce Node Allocatable (if required)</span><br><span class="line">if err := cm.enforceNodeAllocatableCgroups(); err != nil &#123;</span><br><span class="line">	return err</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="qosContainerManager-Start"><a href="#qosContainerManager-Start" class="headerlink" title="qosContainerManager.Start"></a>qosContainerManager.Start</h4><p><code>pkg/kubelet/cm/qos_container_manager_linux.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">func (m *qosContainerManagerImpl) Start(getNodeAllocatable func() v1.ResourceList, activePods ActivePodsFunc) error &#123;</span><br><span class="line"></span><br><span class="line">    // 定义burstable和besteffort的cgroup name</span><br><span class="line">    // kubepods/burstable </span><br><span class="line">    // kubepods/besteffort</span><br><span class="line">	qosClasses := map[v1.PodQOSClass]CgroupName&#123;</span><br><span class="line">		v1.PodQOSBurstable:  NewCgroupName(rootContainer, strings.ToLower(string(v1.PodQOSBurstable))),</span><br><span class="line">		v1.PodQOSBestEffort: NewCgroupName(rootContainer, strings.ToLower(string(v1.PodQOSBestEffort))),</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	for qosClass, containerName := range qosClasses &#123;</span><br><span class="line">	    // best effort的pod的CpuShares是2</span><br><span class="line">		if qosClass == v1.PodQOSBestEffort &#123;</span><br><span class="line">			minShares := uint64(MinShares)</span><br><span class="line">			resourceParameters.CpuShares = &amp;minShares</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		containerConfig := &amp;CgroupConfig&#123;</span><br><span class="line">			Name:               containerName,  // 容器所在的cgroup名字</span><br><span class="line">			ResourceParameters: resourceParameters,</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		// 主动做一次cgroup配置的更新，没有则创建；有的话就更新</span><br><span class="line">		if !cm.Exists(containerName) &#123;</span><br><span class="line">			if err := cm.Create(containerConfig); err != nil &#123;</span><br><span class="line">				return fmt.Errorf(&quot;failed to create top level %v QOS cgroup : %v&quot;, qosClass, err)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; else &#123;</span><br><span class="line">			// to ensure we actually have the right state, we update the config on startup</span><br><span class="line">			if err := cm.Update(containerConfig); err != nil &#123;</span><br><span class="line">				return fmt.Errorf(&quot;failed to update top level %v QOS cgroup : %v&quot;, qosClass, err)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	</span><br><span class="line">	&#125;</span><br><span class="line">	// 启动一个周期任务去做更新， 但代码中怎么只有burstable和besteffort两种类型的</span><br><span class="line">	go wait.Until(func() &#123;</span><br><span class="line">		err := m.UpdateCgroups()</span><br><span class="line">		if err != nil &#123;</span><br><span class="line">			klog.Warningf(&quot;[ContainerManager] Failed to reserve QoS requests: %v&quot;, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;, periodicQOSCgroupUpdateInterval, wait.NeverStop)</span><br><span class="line">	</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="enforceNodeAllocatableCgroups-创建顶层cgroup分组"><a href="#enforceNodeAllocatableCgroups-创建顶层cgroup分组" class="headerlink" title="enforceNodeAllocatableCgroups 创建顶层cgroup分组"></a>enforceNodeAllocatableCgroups 创建顶层cgroup分组</h4><p>node上顶层cgroup的创建</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"> func (cm *containerManagerImpl) enforceNodeAllocatableCgroups() error &#123;</span><br><span class="line"></span><br><span class="line">    // allocatable - SystemReserved - KubeReserved</span><br><span class="line">	if cm.CgroupsPerQOS &amp;&amp; nc.EnforceNodeAllocatable.Has(kubetypes.NodeAllocatableEnforcementKey) &#123;</span><br><span class="line">		nodeAllocatable = cm.getNodeAllocatableInternalAbsolute()</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	// 转换一下， cgroupRoot 就是 kubepods 控制组</span><br><span class="line">	cgroupConfig := &amp;CgroupConfig&#123;</span><br><span class="line">		Name:               cm.cgroupRoot,</span><br><span class="line">		ResourceParameters: getCgroupConfig(nodeAllocatable),</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	// guaranteed pod 控制组， 也就是 kubepods 控制组</span><br><span class="line">	if len(cm.cgroupRoot) &gt; 0 &#123;</span><br><span class="line">		go func() &#123;</span><br><span class="line">		    // 不停更新kubepods cgroup</span><br><span class="line">			for &#123;</span><br><span class="line">				err := cm.cgroupManager.Update(cgroupConfig)</span><br><span class="line">			&#125;()</span><br><span class="line">        &#125;</span><br><span class="line">    // system-reserved</span><br><span class="line">    // 调用cgroupManager.Update(cgroupConfig) 实现</span><br><span class="line">    enforceExistingCgroup(cm.cgroupManager, cm.cgroupManager.CgroupName(nc.SystemReservedCgroupName), nc.SystemReserved);</span><br><span class="line">    </span><br><span class="line">    // kube-resreved</span><br><span class="line">    enforceExistingCgroup(cm.cgroupManager</span><br><span class="line">    // 调用cgroupManager.Update(cgroupConfig) 实现</span><br><span class="line">    cm.cgroupManager.CgroupName(nc.KubeReservedCgroupName), nc.KubeReserved)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>kubelet的启动参数<br><code>--enforce-node-allocatable=&#39;pods&#39;,&#39;kube-reserved&#39;,&#39;system-reserved&#39;</code> 这三个参数控制三个cgroup的创建</p>
+<ul>
+<li><code>kubepods</code> cgroup会有控制循loop update的，<code>node allocatable</code>参数，其中cpu是减去两个reserved的资源</li>
+<li><code>--kube-reserved</code> 和 <code>--system-reserved</code>cgroup， 这两个cgroup只更新一次。group的名字可以自定义，<br><code>--system-reserved-cgroup</code>参数， 默认是”&#x2F;system.slice”,<br><code>--kube-reserved-cgroup</code> 参数， 默认是”&#x2F;kubelet.service”,</li>
+</ul>
+<p>对于cgroup中配置的参数，是通过下面方法获取</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">func getCgroupConfig(rl v1.ResourceList) *ResourceConfig &#123;</span><br><span class="line">	// TODO(vishh): Set CPU Quota if necessary.</span><br><span class="line">	if rl == nil &#123;</span><br><span class="line">		return nil</span><br><span class="line">	&#125;</span><br><span class="line">	var rc ResourceConfig</span><br><span class="line">	if q, exists := rl[v1.ResourceMemory]; exists &#123;</span><br><span class="line">		// Memory is defined in bytes.</span><br><span class="line">		val := q.Value()</span><br><span class="line">		rc.Memory = &amp;val</span><br><span class="line">	&#125;</span><br><span class="line">	if q, exists := rl[v1.ResourceCPU]; exists &#123;</span><br><span class="line">		// CPU is defined in milli-cores.</span><br><span class="line">		val := MilliCPUToShares(q.MilliValue())</span><br><span class="line">		rc.CpuShares = &amp;val</span><br><span class="line">	&#125;</span><br><span class="line">	if q, exists := rl[pidlimit.PIDs]; exists &#123;</span><br><span class="line">		val := q.Value()</span><br><span class="line">		rc.PidsLimit = &amp;val</span><br><span class="line">	&#125;</span><br><span class="line">	rc.HugePageLimit = HugePageLimits(rl)</span><br><span class="line"></span><br><span class="line">	return &amp;rc</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>cgroup中更新的参数是memory， cpushares, pidlimits, hugepagelimits</p>
+<h4 id="syncPod-更新每个pod的cgroup"><a href="#syncPod-更新每个pod的cgroup" class="headerlink" title="syncPod 更新每个pod的cgroup"></a>syncPod 更新每个pod的cgroup</h4><p>在pod 创建同步流程中，也会去更新节点cgroup信息。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">func (kl *Kubelet) syncPod(o syncPodOptions) error &#123;</span><br><span class="line"></span><br><span class="line">	pcm := kl.containerManager.NewPodContainerManager()</span><br><span class="line">	</span><br><span class="line">    if !(podKilled &amp;&amp; pod.Spec.RestartPolicy == v1.RestartPolicyNever) &#123;</span><br><span class="line">    	if !pcm.Exists(pod) &#123;</span><br><span class="line">    		if err := kl.containerManager.UpdateQOSCgroups(); err != nil &#123;</span><br><span class="line">    			klog.V(2).Infof(&quot;Failed to update QoS cgroups while syncing pod: %v&quot;, err)</span><br><span class="line">    		&#125;</span><br><span class="line">    		if err := pcm.EnsureExists(pod); err != nil &#123;</span><br><span class="line">    			kl.recorder.Eventf(pod, v1.EventTypeWarning, events.FailedToCreatePodContainer, &quot;unable to ensure pod container exists: %v&quot;, err)</span><br><span class="line">    			return fmt.Errorf(&quot;failed to ensure that the pod: %v cgroups exist and are correctly applied: %v&quot;, pod.UID, err)</span><br><span class="line">    		&#125;</span><br><span class="line">    	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>pkg/kubelet/cm/pod_container_manager_linux.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">func (m *podContainerManagerImpl) EnsureExists(pod *v1.Pod) error &#123;</span><br><span class="line">    // pod的cgroup名字</span><br><span class="line">    // 对于guarantee pod， 直接在kubepods 这个cgroup下</span><br><span class="line">    // 其他则是在kubepods/burstable, kubepods/besteffort</span><br><span class="line">	podContainerName, _ := m.GetPodContainerName(pod)</span><br><span class="line">	// check if container already exist</span><br><span class="line">	alreadyExists := m.Exists(pod)</span><br><span class="line">	if !alreadyExists &#123;</span><br><span class="line">		// 生成cgroup的配置</span><br><span class="line">		// m.enforceCPULimits bool类型，一般为true</span><br><span class="line">		// m.cpuCFSQuotaPeriod 默认100ms</span><br><span class="line">		containerConfig := &amp;CgroupConfig&#123;</span><br><span class="line">			Name:               podContainerName,</span><br><span class="line">			ResourceParameters: ResourceConfigForPod(pod, m.enforceCPULimits, m.cpuCFSQuotaPeriod),</span><br><span class="line">		&#125;</span><br><span class="line">		if m.podPidsLimit &gt; 0 &#123;</span><br><span class="line">			containerConfig.ResourceParameters.PidsLimit = &amp;m.podPidsLimit</span><br><span class="line">		&#125;</span><br><span class="line">		if err := m.cgroupManager.Create(containerConfig); err != nil &#123;</span><br><span class="line">			return fmt.Errorf(&quot;failed to create container for %v : %v&quot;, podContainerName, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	if err := m.applyLimits(pod); err != nil &#123;</span><br><span class="line">		return fmt.Errorf(&quot;failed to apply resource limits on container for %v : %v&quot;, podContainerName, err)</span><br><span class="line">	&#125;</span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>pod中定义的资源转成cgroup控制组里的配置资源</p>
+<p>通过pcm.EnsureExists确保pod的cgroup组存在并更新pod所在的cgroup</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">func ResourceConfigForPod(pod *v1.Pod, enforceCPULimits bool, cpuPeriod uint64) *ResourceConfig &#123;</span><br><span class="line">	// sum requests and limits.</span><br><span class="line">	reqs, limits := resource.PodRequestsAndLimits(pod)</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line">	cpuShares := MilliCPUToShares(cpuRequests)</span><br><span class="line">	cpuQuota := MilliCPUToQuota(cpuLimits, int64(cpuPeriod))</span><br><span class="line">	</span><br><span class="line">	// build the result</span><br><span class="line">	result := &amp;ResourceConfig&#123;&#125;</span><br><span class="line">	if qosClass == v1.PodQOSGuaranteed &#123;</span><br><span class="line">		result.CpuShares = &amp;cpuShares</span><br><span class="line">		result.CpuQuota = &amp;cpuQuota</span><br><span class="line">		result.CpuPeriod = &amp;cpuPeriod</span><br><span class="line">		result.Memory = &amp;memoryLimits</span><br><span class="line">	&#125; else if qosClass == v1.PodQOSBurstable &#123;</span><br><span class="line">		result.CpuShares = &amp;cpuShares</span><br><span class="line">		if cpuLimitsDeclared &#123;</span><br><span class="line">			result.CpuQuota = &amp;cpuQuota</span><br><span class="line">			result.CpuPeriod = &amp;cpuPeriod</span><br><span class="line">		&#125;</span><br><span class="line">		if memoryLimitsDeclared &#123;</span><br><span class="line">			result.Memory = &amp;memoryLimits</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; else &#123;</span><br><span class="line">		shares := uint64(MinShares)</span><br><span class="line">		result.CpuShares = &amp;shares</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li>cpuPeriod 是默认值100ms， 对应的启动参数是<code>--cpu-cfs-quota-period=100ms</code></li>
+<li>cpuShares 表示有几个核可用，是<code>pod request计</code>算来的，是共享核时的分cpu时间片策略，我理解容器启动的进程，当物理机上节点资源紧张不得不共享核时，可以有多大的时间片分。share概念体现在共享一个核时。</li>
+<li>cpuQuota  是从cpu limits计算得来， 体现在<code>cpu.cfs_quota_us/cpu.cfs_period_us</code></li>
+<li>memoryLimits 从memoryLimits 计算得来</li>
+</ul>
+<p>对不不同QOS的pod来说</p>
+<ul>
+<li>guarantee pod都会设置如上的参数值</li>
+<li>burstable pod， CpuShares会设置，但是它的Resources.Limits设置了，才会去更新cpu quota,cpu period及memroy limit</li>
+<li>besteffort pod. 只会配置cpu share且是最小值2.</li>
+</ul>
+<p>3中类型的parent cgroup，以及子pod 的cgroup，还有kubereserved,systemteserved等等cgroup参数的设置<br>调用的都是<code>cgroupmanager.Update()</code></p>
+<h4 id="cgroupManager-Update-最后干活"><a href="#cgroupManager-Update-最后干活" class="headerlink" title="cgroupManager.Update 最后干活"></a>cgroupManager.Update 最后干活</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">func (m *cgroupManagerImpl) Update(cgroupConfig *CgroupConfig) error &#123;</span><br><span class="line">    // 将cm中的资源对象转换成runc libcontainer对象的格式</span><br><span class="line">	resourceConfig := cgroupConfig.ResourceParameters</span><br><span class="line">	resources := m.toResources(resourceConfig)</span><br><span class="line"></span><br><span class="line">	libcontainerCgroupConfig := &amp;libcontainerconfigs.Cgroup&#123;</span><br><span class="line">		Resources: resources,</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	// 每个cgroup名字，构建其子系统的挂载点，比如cpu、memory、cpuset</span><br><span class="line">	libcontainerCgroupConfig.Paths = m.buildCgroupPaths(cgroupConfig.Name)</span><br><span class="line">	</span><br><span class="line">	setSupportedSubsystemsV1(libcontainerCgroupConfig)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">调用每一种资源的Set()方法去设置。</span><br><span class="line">func setSupportedSubsystemsV1(cgroupConfig *libcontainerconfigs.Cgroup) error &#123;</span><br><span class="line">	for sys, required := range getSupportedSubsystems() &#123;</span><br><span class="line">		if _, ok := cgroupConfig.Paths[sys.Name()]; !ok &#123;</span><br><span class="line">			if required &#123;</span><br><span class="line">				return fmt.Errorf(&quot;failed to find subsystem mount for required subsystem: %v&quot;, sys.Name())</span><br><span class="line">			&#125;</span><br><span class="line">			// the cgroup is not mounted, but its not required so continue...</span><br><span class="line">			klog.V(6).Infof(&quot;Unable to find subsystem mount for optional subsystem: %v&quot;, sys.Name())</span><br><span class="line">			continue</span><br><span class="line">		&#125;</span><br><span class="line">		if err := sys.Set(cgroupConfig.Paths[sys.Name()], cgroupConfig); err != nil &#123;</span><br><span class="line">			return fmt.Errorf(&quot;failed to set config for supported subsystems : %v&quot;, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以<code>cpuset</code>为例子，<br>在我集群环境使用的是<code>cgroup v1</code>，运行时是<code>runc</code>.</p>
+<p>代码位于<code>vendor/github.com/opencontainers/runc/libcontainer/cgroups/fs/cpuset.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">func (s *CpusetGroup) Set(path string, cgroup *configs.Cgroup) error &#123;</span><br><span class="line">	if cgroup.Resources.CpusetCpus != &quot;&quot; &#123;</span><br><span class="line">		if err := fscommon.WriteFile(path, &quot;cpuset.cpus&quot;, cgroup.Resources.CpusetCpus); err != nil &#123;</span><br><span class="line">			return err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	if cgroup.Resources.CpusetMems != &quot;&quot; &#123;</span><br><span class="line">		if err := fscommon.WriteFile(path, &quot;cpuset.mems&quot;, cgroup.Resources.CpusetMems); err != nil &#123;</span><br><span class="line">			return err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func WriteFile(dir, file, data string) error &#123;</span><br><span class="line">	if dir == &quot;&quot; &#123;</span><br><span class="line">		return errors.Errorf(&quot;no directory specified for %s&quot;, file)</span><br><span class="line">	&#125;</span><br><span class="line">	path, err := securejoin.SecureJoin(dir, file)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line">	if err := retryingWriteFile(path, []byte(data), 0700); err != nil &#123;</span><br><span class="line">		return errors.Wrapf(err, &quot;failed to write %q to %q&quot;, data, path)</span><br><span class="line">	&#125;</span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func retryingWriteFile(filename string, data []byte, perm os.FileMode) error &#123;</span><br><span class="line">	for &#123;</span><br><span class="line">		err := ioutil.WriteFile(filename, data, perm)</span><br><span class="line">		if errors.Is(err, unix.EINTR) &#123;</span><br><span class="line">			logrus.Infof(&quot;interrupted while writing %s to %s&quot;, string(data), filename)</span><br><span class="line">			continue</span><br><span class="line">		&#125;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用运行时库，比如runc的<code>libcontainer</code>，库中已经封装好了更新的方法。<br>方法也很简单，调用go内置的<code>ioutil.WriteFile</code>方法去更新cgroup文件。</p>
+<h3 id="device-manager"><a href="#device-manager" class="headerlink" title="device manager"></a>device manager</h3><p>cm 除了维护cgroup外，还负责container device的管理，这是由 <code>device manager</code> 完成。</p>
+<p>代码位于<code>pkg/kubelet/cm/devicemanager/manager.go</code><br> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) Start() error &#123;</span><br><span class="line"></span><br><span class="line">	err := m.readCheckpoint()</span><br><span class="line">	</span><br><span class="line">	s, err := net.Listen(&quot;unix&quot;, socketPath)</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line">	// 注册服务， 服务提供者是ManagerImpl</span><br><span class="line">	// device plugin 会发送注册请求过来</span><br><span class="line">	m.wg.Add(1)</span><br><span class="line">m.server = grpc.NewServer([]grpc.ServerOption&#123;&#125;...)</span><br><span class="line"></span><br><span class="line">pluginapi.RegisterRegistrationServer(m.server, m)</span><br><span class="line">go func() &#123;</span><br><span class="line">	defer m.wg.Done()</span><br><span class="line">	m.server.Serve(s)</span><br><span class="line">&#125;()</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>这里<code>cm</code>创建了一个<code>grpc server</code>，并将 <code>m</code> 注册后<code>service backend</code>。<br><code>device manager</code>它会接收<code>device plugin</code>侧的<code>RegisterRequest</code>，将device 注册到kubelet中。</p>
+<p>以及<code>ListAndWatch</code>和<code>Allocation</code>方法，在其他文章进行详细分析</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li><code>cpu policy</code>是none时，绑定所有核，相当于没有绑。guarantee pod的cpu也是没有绑定的。</li>
+<li><code>cpu policy</code>是static时， 开启绑核。cpu共享池是节点上所有cpu - guarantee pod后剩余的， 注意reserve资源是仍在pool里的。guarantee pod绑定的核，不会再绑给其他pod。</li>
+<li>describe node可以看到节点资源划分。统计的是被pod占用的资源。比如<code>terminating pod</code>仍然是资源的。</li>
+<li>burstable 占用节点资源是0，所以不保证持久运行，burstable占用节点资源是按reqeust值算的，guarantee占用节点资源按request&#x2F;limit计算，因为后面两者节点的资源在计算节点资源划分时是剪去了，也相当于在该node上预留好了位置，所以服务质量有保证的。对于burstable pod完全是按照0资源去计算的，压根就没留资源位置。资源不足时，很容易被驱逐。</li>
+</ol>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                
+                
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/cgroup/"># cgroup</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2023/06/18/how-k8s-use-gpu-by-device-plugin/">how k8s use gpu by device plugin</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Mingeer | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>
