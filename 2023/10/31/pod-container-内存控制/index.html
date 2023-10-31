@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Mingeer">
+
+
+
+
+
+<title>pod container 内存控制 | Mingeer</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Ming&#39;s Time</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Ming&#39;s Time</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">pod container 内存控制</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Mingeer</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">October 31, 2023&nbsp;&nbsp;21:35:13</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/kubernetes/">kubernetes</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p>创建pod</p>
+<pre><code>resources:
+  limits:
+    cpu: &quot;4&quot;
+    memory: 4Gi
+    nvidia.com/gpu: &quot;1&quot;
+  requests:
+    cpu: &quot;4&quot;
+    memory: 4Gi
+    nvidia.com/gpu: &quot;1&quot;
+</code></pre>
+<!---->
+
+<pre><code># cat /sys/fs/cgroup/memory/memory.limit_in_bytes
+4294967296    / 4G
+</code></pre>
+<!---->
+
+<pre><code>&gt;&gt;&gt; import sys
+&gt;&gt;&gt; print(sys.getsizeof(my_list))
+64
+&gt;&gt;&gt; my_list = [0]*2
+&gt;&gt;&gt; print(sys.getsizeof(my_list))
+72
+&gt;&gt;&gt; my_list = [0]*3
+&gt;&gt;&gt; print(sys.getsizeof(my_list))
+80
+</code></pre>
+<p>可见变量占用字节数： <code>64 + 8*(n-1)</code></p>
+<pre><code># cat /sys/fs/cgroup/memory/memory.limit_in_bytes
+4294967296
+
+# cat /sys/fs/cgroup/memory/memory.usage_in_bytes
+78319616
+</code></pre>
+<p>理论上可以申请的数组长度<br><code>n =((4294967296 - 78319616) - 64)/8 + 1 = 527080953</code></p>
+<p>用这个值指导数组长度的创建</p>
+<pre><code>&gt;&gt;&gt; my_list = [0]*526000000
+&gt;&gt;&gt; import sys
+&gt;&gt;&gt; print(sys.getsizeof(my_list))
+4208000056
+</code></pre>
+<!---->
+
+<pre><code># cat /sys/fs/cgroup/memory/memory.usage_in_bytes
+4294369280
+</code></pre>
+<p>容器剩余的内存字节byte</p>
+<pre><code>4294967296 - 4294369280 = 598016 字节
+</code></pre>
+<p>理论上可再创建的数组长度是<code>（598016 - 64 ）/8 + 1 = 74745</code>个</p>
+<p>创建长度为10w的数组，进程因为oom而被杀死。</p>
+<pre><code>&gt;&gt;&gt; my_list5 = [0]*100000
+Killed
+</code></pre>
+<p>在容器中查看memory控制组管理的进程， 均为容器中启动的进程。从而可以控制整个容器所使用的系统资源</p>
+<pre><code># cat /sys/fs/cgroup/memory/tasks
+1
+11
+12
+15
+26
+64
+75
+157
+212
+root@ruike-gpu-instance-1698738579-jqri0boj-557db69f4c-z95w2:/sys/fs/cgroup/memory# ps -ef
+UID          PID    PPID  C STIME TTY          TIME CMD
+root           1       0  0 07:49 ?        00:00:00 /bin/bash /start.sh
+root          11       1  0 07:49 ?        00:00:00 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 s
+root          12       1  0 07:49 ?        00:00:01 /usr/bin/python3 /usr/local/bin/jupyter-lab --Se
+root          15      11  0 07:50 ?        00:00:00 sshd: root@pts/0
+root          26      15  0 07:50 pts/0    00:00:00 -bash
+root          64      11  0 07:56 ?        00:00:00 sshd: root@pts/1
+root          75      64  0 07:56 pts/1    00:00:00 -bash
+root         157       0  0 12:31 pts/2    00:00:00 bash
+root         216     157  0 13:05 pts/2    00:00:00 ps -ef
+</code></pre>
+<p>当在容器中执行top&#x2F;free等命令时，容器侧和host侧看到的信息事一致的，这是因为</p>
+<p>在调用<code>libcontaienr</code>库时将<code>/proc</code>、<code>/dev</code>、<code>/dev/shm</code>、<code>/sys</code>目录以只读方式挂载（bind mount）到容器中，同时还会建立以下几个链接：</p>
+<pre><code>/proc/self/fd-&gt;/dev/fd
+/proc/self/fd/0-&gt;/dev/stdin
+/proc/self/fd/1-&gt;/dev/stdout
+/proc/self/fd/2-&gt;/dev/stder
+</code></pre>
+<p>这样做的道理事保证系统 IO 不会出现问题，容器运行的进程和系统运行的进程查看操作系统事等价的。</p>
+<p>而像free,top等命令会调用该挂在的目录, 所以呈现事一致的。</p>
+<pre><code># strace free
+execve(&quot;/usr/bin/free&quot;, [&quot;free&quot;], [/* 66 vars */]) = 0
+...
+statfs(&quot;/sys/fs/selinux&quot;, 0x7ffec90733a0) = -1 ENOENT (No such file or directory)
+statfs(&quot;/selinux&quot;, 0x7ffec90733a0) = -1 ENOENT (No such file or directory)
+open(&quot;/proc/filesystems&quot;, O_RDONLY) = 3
+...
+open(&quot;/sys/devices/system/cpu/online&quot;, O_RDONLY|O_CLOEXEC) = 3
+...
+open(&quot;/proc/meminfo&quot;, O_RDONLY) = 3
+</code></pre>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>1、Docker 是利用 CGroups 实现资源限制的，只能限制资源消耗的最大值，而不能隔绝其他程序占用自己的资源;</p>
+<p>2、Namespace 的6项隔离看似完整，实际上依旧没有完全隔离 Linux 资源，比如&#x2F;proc 、&#x2F;sys 、&#x2F;dev&#x2F;sd*等目录未完全隔离，SELinux、time、syslog 等所有现有 Namespace 之外的信息都未隔离。<br>3. 内存是不可压缩资源，超过会出发oom将进程killed。其他进程还活着，而cpu是可压缩资源，超过不会被killed.</p>
+<blockquote>
+<p>note</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>k8s</th>
+<th>docker</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>requests.cpu</td>
+<td>–cpu-shares</td>
+<td>当一个宿主机上有多个容器发生 CPU资源竞争时这个参数就会生效，参数值越大，越容易被分配到 CPU</td>
+</tr>
+<tr>
+<td>requests.memory</td>
+<td>没有使用</td>
+<td>在 Kubernetes 的资源 QoS 管理时使用</td>
+</tr>
+<tr>
+<td>limits.cpu</td>
+<td>–cpu-quota</td>
+<td>另外一个参数–cpu-period 默认设置为100000，通过这两个参数限制容器最多能够使用的CPU核数</td>
+</tr>
+<tr>
+<td>limits.memory</td>
+<td>–memory</td>
+<td>限制容器内存</td>
+</tr>
+</tbody></table>
+<p>查看容器真实使用的资源</p>
+<pre><code>1、读取容器 CPU 核数
+
+# 这个值除以100000得到的就是容器核数
+~# cat  /sys/fs/cgroup/cpu/cpu.cfs_quota_us
+400000
+
+2、获取容器内存使用情况（USAGE / LIMIT）
+
+~ # cat /sys/fs/cgroup/memory/memory.usage_in_bytes
+4289953792
+~ # cat /sys/fs/cgroup/memory/memory.limit_in_bytes
+4294967296
+
+3、获取容器是否被设置了 OOM,是否发生过 OOM
+
+~ # cat /sys/fs/cgroup/memory/memory.oom_control
+
+4、获取容器磁盘I/O
+
+~ # cat /sys/fs/cgroup/blkio/blkio.throttle.io_service_bytes
+
+5、获取容器虚拟网卡入/出流量
+~ # cat /sys/class/net/eth0/statistics/rx_bytes
+10167967741
+~ # cat /sys/class/net/eth0/statistics/tx_bytes
+15139291335
+</code></pre>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                
+                
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/cgroup/"># cgroup</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2023/10/30/kubelet-cgroup%E5%AE%9E%E7%8E%B0%E8%B5%84%E6%BA%90%E6%8E%A7%E5%88%B6/">kubelet cgroup实现资源控制</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Mingeer | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>
