@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Mingeer">
+
+
+
+
+
+<title>kubelet node资源上报-1 | Mingeer</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Ming&#39;s Time</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Ming&#39;s Time</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">kubelet node资源上报-1</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Mingeer</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">November 1, 2023&nbsp;&nbsp;18:20:18</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/kubernetes/">kubernetes</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <p>kubelet 会通过<code>syncNodeStatus</code>周期上报node状态, 最终调用的是<code>defaultNodeStatusFuncs</code></p>
+<h1 id="defaultNodeStatusFuncs"><a href="#defaultNodeStatusFuncs" class="headerlink" title="defaultNodeStatusFuncs"></a>defaultNodeStatusFuncs</h1><p>节点信息是由许多<code>setter func</code>完成的。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">func (kl *Kubelet) defaultNodeStatusFuncs() []func(*v1.Node) error &#123;</span><br><span class="line"></span><br><span class="line">	var setters []func(n *v1.Node) error</span><br><span class="line">	setters = append(setters,</span><br><span class="line">	nodestatus.MachineInfo(string(kl.nodeName),            kl.maxPods, </span><br><span class="line">	    kl.podsPerCore, </span><br><span class="line">	    kl.GetCachedMachineInfo, </span><br><span class="line">	    kl.containerManager.GetCapacity, </span><br><span class="line">	    kl.containerManager.GetDevicePluginResourceCapacity, </span><br><span class="line">	    kl.containerManager.GetNodeAllocatableReservation, </span><br><span class="line">	    kl.recordEvent),</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里主要关注<code>MachineInfo</code>这一个setter</p>
+<p>获取信息有两个途径</p>
+<ul>
+<li>cadvisor: 获取的是<code>cpu,memory，hugepage-*</code> 对应的方法是<code>GetCachedMachineInfo</code></li>
+<li>containerManager: 获取的是<code>systemreserved</code>, <code>kubereserved</code>和扩展资源比如<code>nvidia.com/gpu</code></li>
+</ul>
+<h3 id="kl-GetCachedMachineInfo"><a href="#kl-GetCachedMachineInfo" class="headerlink" title="kl.GetCachedMachineInfo"></a>kl.GetCachedMachineInfo</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">// GetCachedMachineInfo assumes that the machine info can&#x27;t change without a reboot</span><br><span class="line">func (kl *Kubelet) GetCachedMachineInfo() (*cadvisorapiv1.MachineInfo, error) &#123;</span><br><span class="line">	kl.machineInfoLock.RLock()</span><br><span class="line">	defer kl.machineInfoLock.RUnlock()</span><br><span class="line">	return kl.machineInfo, nil</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (kl *Kubelet) setCachedMachineInfo(info *cadvisorapiv1.MachineInfo) &#123;</span><br><span class="line">	kl.machineInfoLock.Lock()</span><br><span class="line">	defer kl.machineInfoLock.Unlock()</span><br><span class="line">	kl.machineInfo = info</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">func NewMainKubelet()&#123;</span><br><span class="line">    ...</span><br><span class="line">	machineInfo, err := klet.cadvisor.MachineInfo()</span><br><span class="line">	machineInfo.Timestamp = time.Time&#123;&#125;</span><br><span class="line">	klet.setCachedMachineInfo(machineInfo)</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>MachineInfo</code>的实现</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">func MachineInfo() Setter &#123;</span><br><span class="line"></span><br><span class="line">	return func(node *v1.Node) error &#123;</span><br><span class="line">	</span><br><span class="line">	    // 将cpu、memory、hugepages-* 更新到status.capacity</span><br><span class="line">    	for rName, rCap := range cadvisor.CapacityFromMachineInfo(info) &#123;</span><br><span class="line">    		node.Status.Capacity[rName] = rCap</span><br><span class="line">    	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>cachedMachineInfo</code>从kubelet的缓存<code>machineInfo</code>里获取，该值是在<code>kubelet</code>创建对象和启动时，通过<code>setCachedMachineInfo</code>做一次缓存</p>
+<p>从<code>cadvisor</code>获取机器相关信息并设置到<code>kubelet</code>的缓存对象<code>machineInfo</code>中，后面上传信息时只会从<code>kubelet</code>cached中获取。</p>
+<blockquote>
+<p>NOTE: <code>NewMainKubelet</code> 只会在<code>kubelet</code>创建时启动，也就是只会设置一次。</p>
+</blockquote>
+<p>所以<code>cpu</code>、<code>memory</code>、<code>hugepages-*</code>等机器信息添加到了<code>node.Status</code>部分</p>
+<p>其余资源通过<code>containerManager</code>去获取信息， cm的实现是<code>containerManagerImpl</code>对象，位于<code>pkg/kubelet/cm/container_manager_linux.go</code>，下面分别介绍</p>
+<h3 id="kl-containerManager-GetCapacity"><a href="#kl-containerManager-GetCapacity" class="headerlink" title="kl.containerManager.GetCapacity"></a>kl.containerManager.GetCapacity</h3><p>cm的容量是指<code>ephemeral-storage</code>，我想是因为cm负责容器生命周期管理，容器信息会存放在<code>/var/lib/kubelet</code>中, 需要一定的存储空间能力，之所以叫临时存储，是相对于持久存储来说的，当pod被删除，该部分所占用的存储空间也会被回收。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">func (cm *containerManagerImpl) GetCapacity() v1.ResourceList &#123;</span><br><span class="line">	return cm.capacity</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>pkg/kubelet/cm/container_manager_linux.go</code><br>cm 在启动时会统计它的capacity, 这部分capacity就是<code>/var/lib/kubelet</code>挂在点所在分区的容量，通常就是节点的根分区。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">func (cm *containerManagerImpl) Start()&#123;</span><br><span class="line"></span><br><span class="line">	if utilfeature.DefaultFeatureGate.Enabled(kubefeatures.LocalStorageCapacityIsolation) &#123;</span><br><span class="line">		rootfs, err := cm.cadvisorInterface.RootFsInfo()</span><br><span class="line">		if err != nil &#123;</span><br><span class="line">			return fmt.Errorf(&quot;failed to get rootfs info: %v&quot;, err)</span><br><span class="line">		&#125;</span><br><span class="line">		for rName, rCap := range cadvisor.EphemeralStorageCapacityFromFsInfo(rootfs) &#123;</span><br><span class="line">			cm.capacity[rName] = rCap</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;    </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func EphemeralStorageCapacityFromFsInfo(info cadvisorapi2.FsInfo) v1.ResourceList &#123;</span><br><span class="line">	c := v1.ResourceList&#123;</span><br><span class="line">		v1.ResourceEphemeralStorage: *resource.NewQuantity(</span><br><span class="line">			int64(info.Capacity),</span><br><span class="line">			resource.BinarySI),</span><br><span class="line">	&#125;</span><br><span class="line">	return c</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>获取<code>rootPath</code>的路径信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">func (cc *cadvisorClient) RootFsInfo() (cadvisorapiv2.FsInfo, error) &#123;</span><br><span class="line">	return cc.GetDirFsInfo(cc.rootPath)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的rootpath是？</p>
+<p>它是<code>CAdvisorInterface</code>对象在初始化时设置的 <code>s.RootDirectory</code>, 默认值是<code>/var/lib/kubelet</code></p>
+<p>代码<code>cmd/kubelet/app/server.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">func run() (err error) &#123;</span><br><span class="line"></span><br><span class="line">	if kubeDeps.CAdvisorInterface == nil &#123;</span><br><span class="line">	    // 镜像信息</span><br><span class="line">		imageFsInfoProvider := cadvisor.NewImageFsInfoProvider(s.ContainerRuntime, s.RemoteRuntimeEndpoint)</span><br><span class="line">		</span><br><span class="line">		kubeDeps.CAdvisorInterface, err = cadvisor.New(imageFsInfoProvider, s.RootDirectory, cgroupRoots, cadvisor.UsingLegacyCadvisorStats(s.ContainerRuntime, s.RemoteRuntimeEndpoint))</span><br><span class="line">		if err != nil &#123;</span><br><span class="line">			return err</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到<code>fs</code>相关的，比如<code>/var/lib/kubelet</code>的容量或镜像信息都是通过<code>cadvisor</code>提供的</p>
+<h3 id="kl-containerManager-GetDevicePluginResourceCapacity"><a href="#kl-containerManager-GetDevicePluginResourceCapacity" class="headerlink" title="kl.containerManager.GetDevicePluginResourceCapacity"></a>kl.containerManager.GetDevicePluginResourceCapacity</h3><p>这里的容量是指device所提供的资源容量</p>
+<p>cm调用<code>deviceManager</code>获得</p>
+<p><code>pkg/kubelet/cm/devicemanager/manager.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">func (cm *containerManagerImpl) GetDevicePluginResourceCapacity() (v1.ResourceList, v1.ResourceList, []string) &#123;</span><br><span class="line">	return cm.deviceManager.GetCapacity()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当 <code>kubelet</code> 更新 <code>node status</code> 时该方法会被调用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) GetCapacity() (v1.ResourceList, v1.ResourceList, []string) &#123;</span><br><span class="line">	</span><br><span class="line">	// 遍历所有的健康device, key是资源名，v是device信息，map类型</span><br><span class="line">	for resourceName, devices := range m.healthyDevices &#123;</span><br><span class="line">	</span><br><span class="line">	    // 将devices的长度作为资源量，通过数量体现的扩展资源。</span><br><span class="line">		capacity[v1.ResourceName(resourceName)] = *resource.NewQuantity(int64(devices.Len()), resource.DecimalSI)</span><br><span class="line">		allocatable[v1.ResourceName(resourceName)] = *resource.NewQuantity(int64(devices.Len()), resource.DecimalSI)</span><br><span class="line">	</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	for resourceName, devices := range m.unhealthyDevices &#123;</span><br><span class="line">	    // 资源是否还在endpoints列表中</span><br><span class="line">	    eI, ok := m.endpoints[resourceName]</span><br><span class="line">		if (ok &amp;&amp; eI.e.stopGracePeriodExpired()) || !ok &#123;</span><br><span class="line">			if !ok &#123;</span><br><span class="line">				klog.Errorf(&quot;unexpected: unhealthyDevices and endpoints are out of sync&quot;)</span><br><span class="line">			&#125;</span><br><span class="line">			// 不在endpoints列表中，或者存在但是在stop中</span><br><span class="line">			// 将该资源清理，同时更新checkpoint文件</span><br><span class="line">			delete(m.endpoints, resourceName)</span><br><span class="line">			delete(m.unhealthyDevices, resourceName)</span><br><span class="line">			deletedResources.Insert(resourceName)</span><br><span class="line">			needsUpdateCheckpoint = true</span><br><span class="line">		&#125; else &#123;</span><br><span class="line">		    // 将之前不健康的resource重新加回到capacity中</span><br><span class="line">			capacityCount := capacity[v1.ResourceName(resourceName)]</span><br><span class="line">			unhealthyCount := *resource.NewQuantity(int64(devices.Len()), resource.DecimalSI)</span><br><span class="line">			capacityCount.Add(unhealthyCount)</span><br><span class="line">			capacity[v1.ResourceName(resourceName)] = capacityCount</span><br><span class="line">		&#125;</span><br><span class="line">	</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	return capacity, allocatable, deletedResources.UnsortedList()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>返回值</p>
+<ul>
+<li>capacity: contains the registered device plugin resource capacity.</li>
+<li>allocatable：contains the registered device plugin resource allocatable. 其实两者是相同的</li>
+<li>deletedResources.UnsortedList(): contains previously registered resources that are no longer active. inactive状态的资源。</li>
+</ul>
+<p>前两个是map类型，可以包含多种类型的资源，最后一个返回值是list类型</p>
+<h3 id="kl-containerManager-GetNodeAllocatableReservation"><a href="#kl-containerManager-GetNodeAllocatableReservation" class="headerlink" title="kl.containerManager.GetNodeAllocatableReservation"></a>kl.containerManager.GetNodeAllocatableReservation</h3><p>位于 <code>pkg/kubelet/cm/node_container_manager_linux.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">func (cm *containerManagerImpl) GetNodeAllocatableReservation() v1.ResourceList &#123;</span><br><span class="line">	evictionReservation := hardEvictionReservation(cm.HardEvictionThresholds, cm.capacity)</span><br><span class="line">	result := make(v1.ResourceList)</span><br><span class="line">	for k := range cm.capacity &#123;</span><br><span class="line">		value := resource.NewQuantity(0, resource.DecimalSI)</span><br><span class="line">		if cm.NodeConfig.SystemReserved != nil &#123;</span><br><span class="line">			value.Add(cm.NodeConfig.SystemReserved[k])</span><br><span class="line">		&#125;</span><br><span class="line">		if cm.NodeConfig.KubeReserved != nil &#123;</span><br><span class="line">			value.Add(cm.NodeConfig.KubeReserved[k])</span><br><span class="line">		&#125;</span><br><span class="line">		if evictionReservation != nil &#123;</span><br><span class="line">			value.Add(evictionReservation[k])</span><br><span class="line">		&#125;</span><br><span class="line">		if !value.IsZero() &#123;</span><br><span class="line">			result[k] = *value</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	return result</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">func hardEvictionReservation() v1.ResourceList &#123;</span><br><span class="line"></span><br><span class="line">	for _, threshold := range thresholds &#123;</span><br><span class="line">		switch threshold.Signal &#123;</span><br><span class="line">		case evictionapi.SignalMemoryAvailable:</span><br><span class="line">			memoryCapacity := capacity[v1.ResourceMemory]</span><br><span class="line">			// 乘以percentage</span><br><span class="line">			value := evictionapi.GetThresholdQuantity(threshold.Value, &amp;memoryCapacity)</span><br><span class="line">			ret[v1.ResourceMemory] = *value</span><br><span class="line">		case evictionapi.SignalNodeFsAvailable:</span><br><span class="line">			storageCapacity := capacity[v1.ResourceEphemeralStorage]</span><br><span class="line">			// 乘以percentage</span><br><span class="line">			value := evictionapi.GetThresholdQuantity(threshold.Value, &amp;storageCapacity)</span><br><span class="line">			ret[v1.ResourceEphemeralStorage] = *value</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>驱逐预留出来的资源包括两部分</p>
+<ul>
+<li>memory.available 对应capacity的meory部分</li>
+<li>nodefs.available 对应capacity的ephemeral-storage部分</li>
+</ul>
+<p>乘以百分比后（通常5%），就是驱逐预留出来的资源</p>
+<h2 id="MachineInfo的执行逻辑"><a href="#MachineInfo的执行逻辑" class="headerlink" title="MachineInfo的执行逻辑"></a>MachineInfo的执行逻辑</h2><p>将资源更新到<code>ndoe.status</code>的<code>capacity</code>和<code>allocatable</code>中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line">func MachineInfo()&#123;</span><br><span class="line"></span><br><span class="line">    // Capacity中cpu, memory and hugepage-*  部分</span><br><span class="line">	info, err := machineInfoFunc()</span><br><span class="line">	for rName, rCap := range cadvisor.CapacityFromMachineInfo(info) &#123;</span><br><span class="line">		node.Status.Capacity[rName] = rCap</span><br><span class="line">	&#125;	</span><br><span class="line">	</span><br><span class="line">	// capacity设置ephemeral-storage 部分</span><br><span class="line">	if utilfeature.DefaultFeatureGate.Enabled(features.LocalStorageCapacityIsolation) &#123;</span><br><span class="line">		initialCapacity := capacityFunc()</span><br><span class="line">		if initialCapacity != nil &#123;</span><br><span class="line">			if v, exists := initialCapacity[v1.ResourceEphemeralStorage]; exists &#123;</span><br><span class="line">				node.Status.Capacity[v1.ResourceEphemeralStorage] = v</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	// capaicty 设置扩展资源	</span><br><span class="line">	devicePluginCapacity, devicePluginAllocatable, removedDevicePlugins = devicePluginResourceCapacityFunc()</span><br><span class="line">	</span><br><span class="line">	// 设置node status的capacity域</span><br><span class="line">	for k, v := range devicePluginCapacity &#123;</span><br><span class="line">		if old, ok := node.Status.Capacity[k]; !ok || old.Value() != v.Value() &#123;</span><br><span class="line">		&#125;</span><br><span class="line">		node.Status.Capacity[k] = v</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	for _, removedResource := range removedDevicePlugins &#123;</span><br><span class="line">	</span><br><span class="line">	    // inactive的device,设置node status的capacity为0</span><br><span class="line">		node.Status.Capacity[v1.ResourceName(removedResource)] = *resource.NewQuantity(int64(0), resource.DecimalSI)</span><br><span class="line">	</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line">	// allocatable 部分的cpu、memory</span><br><span class="line">	// allocatable = capacity - reserve。</span><br><span class="line">	// 预留资源包括三部分，cpu相关的（kubereserved,systemreserved）,memrory和nodefs相关的eviction</span><br><span class="line">	allocatableReservation := nodeAllocatableReservationFunc()</span><br><span class="line">	for k, v := range node.Status.Capacity &#123;</span><br><span class="line">		value := v.DeepCopy()</span><br><span class="line">		if res, exists := allocatableReservation[k]; exists &#123;</span><br><span class="line">		    // 减去预留的资源就是allocatable</span><br><span class="line">			value.Sub(res)</span><br><span class="line">		&#125;</span><br><span class="line">		node.Status.Allocatable[k] = value</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	// allocatable部分的扩展资源， 其实capacity总是等于allocatable</span><br><span class="line">	for k, v := range devicePluginAllocatable &#123;</span><br><span class="line">		if old, ok := node.Status.Allocatable[k]; !ok || old.Value() != v.Value() &#123;</span><br><span class="line">			klog.V(2).Infof(&quot;Update allocatable for %s to %d&quot;, k, v.Value())</span><br><span class="line">		&#125;</span><br><span class="line">		node.Status.Allocatable[k] = v</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line">	// 如果开启的大页内存，allocatable部分的memory还需要减去大页的内存。</span><br><span class="line">	for k, v := range node.Status.Capacity &#123;</span><br><span class="line">		if v1helper.IsHugePageResourceName(k) &#123;</span><br><span class="line">			allocatableMemory := node.Status.Allocatable[v1.ResourceMemory]</span><br><span class="line">			value := v.DeepCopy()</span><br><span class="line">			allocatableMemory.Sub(value)</span><br><span class="line">			if allocatableMemory.Sign() &lt; 0 &#123;</span><br><span class="line">				// Negative Allocatable resources don&#x27;t make sense.</span><br><span class="line">				allocatableMemory.Set(0)</span><br><span class="line">			&#125;</span><br><span class="line">			node.Status.Allocatable[v1.ResourceMemory] = allocatableMemory</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="device-plugin-Register"><a href="#device-plugin-Register" class="headerlink" title="device plugin Register"></a>device plugin Register</h2><p>每启动一个<code>device plugin</code> 则会向<code>containerManager</code>中的<code>DeviceManager</code> 发起注册请求，也就是调用该<code>Register</code>方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) Register(ctx context.Context, r *pluginapi.RegisterRequest) (*pluginapi.Empty, error) &#123;</span><br><span class="line"></span><br><span class="line">    // 版本检查</span><br><span class="line">    // 资源名检查</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	go m.addEndpoint(r)</span><br><span class="line">	</span><br><span class="line">	// 不会返回错误信息</span><br><span class="line">	return &amp;pluginapi.Empty&#123;&#125;, nil</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>创建一个协程去干活，多个plugin的注册不会互相影响，提高注册的并发。</p>
+<p><code>device plugin</code> 发过来的请求是<br><code>vendor/k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1/api.pb.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">type RegisterRequest struct &#123;</span><br><span class="line"></span><br><span class="line">	Version string `protobuf:&quot;bytes,1,opt,name=version,proto3&quot; json:&quot;version,omitempty&quot;`</span><br><span class="line">	// device plugin 监听的socket地址, string类型</span><br><span class="line">	// PATH = path.Join(DevicePluginPath, endpoint)</span><br><span class="line">	Endpoint string `protobuf:&quot;bytes,2,opt,name=endpoint,proto3&quot; json:&quot;endpoint,omitempty&quot;`</span><br><span class="line">    // 资源名字</span><br><span class="line">	ResourceName string `protobuf:&quot;bytes,3,opt,name=resource_name,json=resourceName,proto3&quot; json:&quot;resource_name,omitempty&quot;`</span><br><span class="line">	// Options to be communicated with Device Manager</span><br><span class="line">	Options              *DevicePluginOptions `protobuf:&quot;bytes,4,opt,name=options,proto3&quot; json:&quot;options,omitempty&quot;`</span><br><span class="line">	XXX_NoUnkeyedLiteral struct&#123;&#125;             `json:&quot;-&quot;`</span><br><span class="line">	XXX_sizecache        int32                `json:&quot;-&quot;`</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="addEndpoint"><a href="#addEndpoint" class="headerlink" title="addEndpoint"></a>addEndpoint</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) addEndpoint(r *pluginapi.RegisterRequest) &#123;</span><br><span class="line">	new, err := newEndpointImpl(filepath.Join(m.socketdir, r.Endpoint), r.ResourceName, m.callback)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		klog.Errorf(&quot;Failed to dial device plugin with request %v: %v&quot;, r, err)</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line">	// device plugin建立resourceName和对象的关联</span><br><span class="line">	m.registerEndpoint(r.ResourceName, r.Options, new)</span><br><span class="line">	go func() &#123;</span><br><span class="line">		m.runEndpoint(r.ResourceName, new)</span><br><span class="line">	&#125;()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>new一个endpoint， 将device plugin manager的socketdir和device plugin发过来的endpoint 组成一个新的路径， 同时还有device plugin manager的回调函数。</li>
+</ol>
+<h3 id="runEndpoint"><a href="#runEndpoint" class="headerlink" title="runEndpoint"></a>runEndpoint</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) runEndpoint(resourceName string, e endpoint) &#123;</span><br><span class="line">	e.run()  // 里面是个死循环，run退出说明listandWatch异常，也就是断开链接了，可认为device unhealth.</span><br><span class="line">	e.stop()</span><br><span class="line"></span><br><span class="line">	m.mutex.Lock()</span><br><span class="line">	defer m.mutex.Unlock()</span><br><span class="line"></span><br><span class="line">    // 标记资源 unhealthy</span><br><span class="line">	if old, ok := m.endpoints[resourceName]; ok &amp;&amp; old.e == e &#123;</span><br><span class="line">		m.markResourceUnhealthy(resourceName)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	klog.V(2).Infof(&quot;Endpoint (%s, %v) became unhealthy&quot;, resourceName, e)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="markResourceUnhealthy"><a href="#markResourceUnhealthy" class="headerlink" title="markResourceUnhealthy"></a>markResourceUnhealthy</h3><p>将unhealthy device添加到device plugin manager的unhealthyDevices列表中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) markResourceUnhealthy(resourceName string) &#123;</span><br><span class="line">	klog.V(2).Infof(&quot;Mark all resources Unhealthy for resource %s&quot;, resourceName)</span><br><span class="line">	healthyDevices := sets.NewString()</span><br><span class="line">	if _, ok := m.healthyDevices[resourceName]; ok &#123;</span><br><span class="line">		healthyDevices = m.healthyDevices[resourceName]</span><br><span class="line">		m.healthyDevices[resourceName] = sets.NewString()</span><br><span class="line">	&#125;</span><br><span class="line">	if _, ok := m.unhealthyDevices[resourceName]; !ok &#123;</span><br><span class="line">		m.unhealthyDevices[resourceName] = sets.NewString()</span><br><span class="line">	&#125;</span><br><span class="line">	m.unhealthyDevices[resourceName] = m.unhealthyDevices[resourceName].Union(healthyDevices)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="run"><a href="#run" class="headerlink" title="run"></a>run</h3><p>callback 完成资源的注册</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">func (e *endpointImpl) run() &#123;</span><br><span class="line">	stream, err := e.client.ListAndWatch(context.Background(), &amp;pluginapi.Empty&#123;&#125;)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		klog.Errorf(errListAndWatch, e.resourceName, err)</span><br><span class="line"></span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	for &#123;</span><br><span class="line">		response, err := stream.Recv()</span><br><span class="line">		devs := response.Devices</span><br><span class="line">		klog.V(2).Infof(&quot;State pushed for device plugin %s&quot;, e.resourceName)</span><br><span class="line">		</span><br><span class="line">		for _, d := range devs &#123;</span><br><span class="line">			newDevs = append(newDevs, *d)</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		e.callback(e.resourceName, newDevs)</span><br><span class="line">	</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ListAndWatch会返回device信息,<br><code>vendor/k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1/api.pb.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">// E.g:</span><br><span class="line">// struct Device &#123;</span><br><span class="line">//    ID: &quot;GPU-fef8089b-4820-abfc-e83e-94318197576e&quot;,</span><br><span class="line">//    Health: &quot;Healthy&quot;,</span><br><span class="line">//    Topology:</span><br><span class="line">//      Node:</span><br><span class="line">//        </span><br></pre></td></tr></table></figure>
+
+<h3 id="callback-完成资源的注册"><a href="#callback-完成资源的注册" class="headerlink" title="callback 完成资源的注册"></a>callback 完成资源的注册</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">func newManagerImpl(socketPath string, topology []cadvisorapi.Node, topologyAffinityStore topologymanager.Store) (*ManagerImpl, error) &#123;</span><br><span class="line">	klog.V(2).Infof(&quot;Creating Device Plugin manager at %s&quot;, socketPath)</span><br><span class="line">	</span><br><span class="line">	manager.callback = manager.genericDeviceUpdateCallback</span><br><span class="line">	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="callback-genericDeviceUpdateCallback"><a href="#callback-genericDeviceUpdateCallback" class="headerlink" title="callback: genericDeviceUpdateCallback"></a>callback: genericDeviceUpdateCallback</h3><p><code>pkg/kubelet/cm/devicemanager/manager.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) genericDeviceUpdateCallback(resourceName string, devices []pluginapi.Device) &#123;</span><br><span class="line">	m.mutex.Lock()</span><br><span class="line">	m.healthyDevices[resourceName] = sets.NewString()</span><br><span class="line">	m.unhealthyDevices[resourceName] = sets.NewString()</span><br><span class="line">	m.allDevices[resourceName] = make(map[string]pluginapi.Device)</span><br><span class="line">	for _, dev := range devices &#123;</span><br><span class="line">	    // device的信息记录到resourcename和device.id组成的二维矩阵中，并赋值到device plugin manager的allDevices中</span><br><span class="line">		m.allDevices[resourceName][dev.ID] = dev</span><br><span class="line">		if dev.Health == pluginapi.Healthy &#123;</span><br><span class="line">		    // 只记device id</span><br><span class="line">			m.healthyDevices[resourceName].Insert(dev.ID)</span><br><span class="line">		&#125; else &#123;</span><br><span class="line">			m.unhealthyDevices[resourceName].Insert(dev.ID)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	m.mutex.Unlock()</span><br><span class="line">	if err := m.writeCheckpoint(); err != nil &#123;</span><br><span class="line">		klog.Errorf(&quot;writing checkpoint encountered %v&quot;, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据device的健康状态，分别将<code>resourceName</code>和device信息（map，只记录了key是<code>devic.ID</code>， value时Empty{}类型）添加到<code>device plugin manager</code>的<code>healthyDevices</code>和<code>unhealthyDevices</code>这两个map中</p>
+<p>在<code>syncNode</code>周期执行时，会调用<code>device plugin manager</code>的<code>GetCapacity</code>方法， 从上面两个map获取扩展资源的容量. 资源量就是map的长度。</p>
+<h3 id="kubelet-internal-checkpoint"><a href="#kubelet-internal-checkpoint" class="headerlink" title="kubelet_internal_checkpoint"></a>kubelet_internal_checkpoint</h3><p>对于healthy的device，也就是完成注册的device，ListAndWatch流程最后还会封装data对象并记录到<code>/var/lib/kubelet/device-plugins/kubelet_internal_checkpoint</code>文件中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">func (m *ManagerImpl) writeCheckpoint() error &#123;</span><br><span class="line"></span><br><span class="line">	registeredDevs := make(map[string][]string)</span><br><span class="line">	for resource, devices := range m.healthyDevices &#123;</span><br><span class="line">		registeredDevs[resource] = devices.UnsortedList()</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	// pod信息和device信息关联</span><br><span class="line">	data := checkpoint.New(m.podDevices.toCheckpointData(), registeredDevs)</span><br><span class="line">	// 数据落盘</span><br><span class="line">	err := m.checkpointManager.CreateCheckpoint(kubeletDeviceManagerCheckpoint, data)</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>capacity部分</p>
+<ol>
+<li>node.status.capacity中<code>cpu</code>、<code>memory</code>、<code>hugepages-*</code>等机器信息，是从kubele缓存里读取，只在kubelet启动时更新一次，这个确实是固定不变的，周期syncNodeStatus时，都是从cached里获取.</li>
+<li>capaticy.ephemeral-storage 是从contaienrManager的缓存里读取。也是固定不变的，因为kubelet工作的挂载点存储容量不变。</li>
+<li>capacity.扩展是从devicePlugin Manager里获取的，它在变化的，因为device plugin是动态添加删除或者发生故障的，在每次syncNodeStatus时同步更新，后面附上相关代码。</li>
+</ol>
+<p>allocatable部分</p>
+<ol start="2">
+<li>allocatable是从capacity部分计算来的，即capacity-reserved的资源，预留资源包括三部分，cpu相关的（kubereserved,systemreserved）,memrory和nodefs相关的eviction. 所以出了配置reserve资源外，allocatable部分不会变化</li>
+<li>对于剩余的扩展资源来说，我们在代码中发现capacity总是等于allocatable部分，所以是不变的。</li>
+</ol>
+<p>device 部分</p>
+<ol>
+<li>devicde plugin manager 是cm的子manager</li>
+<li>dpm最关键对象是<code>healthyDevices</code>和<code>unhealthyDevices</code>这两个map， key是资源名字，v是device信息（map，关键的是<code>devic.ID</code>）， 还有callback函数。</li>
+</ol>
+<p>device 信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">// E.g:</span><br><span class="line">// struct Device &#123;</span><br><span class="line">//    ID: &quot;GPU-fef8089b-4820-abfc-e83e-94318197576e&quot;,</span><br><span class="line">//    Health: &quot;Healthy&quot;,</span><br><span class="line">//    Topology:</span><br><span class="line">//      Node:</span><br><span class="line">//        </span><br></pre></td></tr></table></figure>
+
+<p>在gpu测试环境上</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"># cat  /var/lib/kubelet/device-plugins/kubelet_internal_checkpoint | jq .</span><br><span class="line">&#123;</span><br><span class="line">  &quot;Data&quot;: &#123;</span><br><span class="line">    &quot;PodDeviceEntries&quot;: [</span><br><span class="line">      &#123;</span><br><span class="line">        &quot;PodUID&quot;: &quot;e956d5f9-abb2-49a5-b9bf-78c5e1064a0f&quot;,</span><br><span class="line">        &quot;ContainerName&quot;: &quot;xiamu-gpu-instance-1693382814-8ogoiqca&quot;,</span><br><span class="line">        &quot;ResourceName&quot;: &quot;nvidia.com/gpu&quot;,</span><br><span class="line">        &quot;DeviceIDs&quot;: &#123;</span><br><span class="line">          &quot;0&quot;: [</span><br><span class="line">            &quot;GPU-6f89ddc0-0967-bfb2-d004-ea8538bb312a&quot;</span><br><span class="line">          ]</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;AllocResp&quot;: &quot;CkIKFk5WSURJQV9WSVNJQkxFX0RFVklDRVMSKEdQVS02Zjg5ZGRjMC0wOTY3LWJmYjItZDAwNC1lYTg1MzhiYjMxMmE=&quot;</span><br><span class="line">      &#125;</span><br><span class="line">    ],</span><br><span class="line">    &quot;RegisteredDevices&quot;: &#123;</span><br><span class="line">      &quot;nvidia.com/gpu&quot;: [       // 资源名: device.ID</span><br><span class="line">        &quot;GPU-6f89ddc0-0967-bfb2-d004-ea8538bb312a&quot;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;Checksum&quot;: 3431416169</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                
+                
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2023/10/31/pod-container-%E5%86%85%E5%AD%98%E6%8E%A7%E5%88%B6/">pod container 内存控制</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Mingeer | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>
