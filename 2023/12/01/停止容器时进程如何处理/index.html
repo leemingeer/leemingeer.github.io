@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Mingeer">
+
+
+
+
+
+<title>停止容器时进程如何处理 | Mingeer</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Ming&#39;s Time</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Ming&#39;s Time</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">停止容器时进程如何处理</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Mingeer</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">December 1, 2023&nbsp;&nbsp;19:49:27</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/container/">container</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="关闭容器即信号杀死容器进程"><a href="#关闭容器即信号杀死容器进程" class="headerlink" title="关闭容器即信号杀死容器进程"></a>关闭容器即信号杀死容器进程</h2><p>想要停止一个容器的场景很多，比如</p>
+<ul>
+<li>用户主动delete pod</li>
+<li>node资源不足evict pod（被动删除Pod）</li>
+<li>readness&#x2F;liveness检测不过，删掉pod</li>
+<li>Docker 停止容器</li>
+</ul>
+<p>最后都会用到 Containerd 这个服务。而 Containerd 在停止容器时会向容器的 init 进程发送一个 <code>SIGTERM</code> 信号，</p>
+<h2 id="删除容器细节"><a href="#删除容器细节" class="headerlink" title="删除容器细节"></a>删除容器细节</h2><p>在 <code>init</code> 进程退出后，容器内的其他进程也都立刻退出了。不过不同的是，<code>init</code> 进程收到的是 <code>SIGTERM</code> 信号，而其他进程收到的是 <code>SIGKILL</code> 信号。</p>
+<p><code>moby</code>项目：<code>daemon/stop.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">func (daemon *Daemon) ContainerStop(name string, timeout *int) error &#123;</span><br><span class="line">	container, err := daemon.GetContainer(name)</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line">	if !container.IsRunning() &#123;</span><br><span class="line">		return containerNotModifiedError&#123;running: false&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	// 如果没设置优雅时间，则使用默认的优雅时间10s</span><br><span class="line">	if timeout == nil &#123;</span><br><span class="line">		stopTimeout := container.StopTimeout()</span><br><span class="line">		timeout = &amp;stopTimeout</span><br><span class="line">	&#125;</span><br><span class="line">	if err := daemon.containerStop(container, *timeout); err != nil &#123;</span><br><span class="line">		return errdefs.System(errors.Wrapf(err, &quot;cannot stop container: %s&quot;, name))</span><br><span class="line">	&#125;</span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (daemon *Daemon) containerStop(container *containerpkg.Container, seconds int) error &#123;</span><br><span class="line"></span><br><span class="line">    // 默认SIGTERM 作为 stop signal</span><br><span class="line">	stopSignal := container.StopSignal()</span><br><span class="line">	// 1. Send a stop signal， 第一次发送SIGTERM信号</span><br><span class="line">    daemon.killPossiblyDeadProcess(container, stopSignal);</span><br><span class="line">    </span><br><span class="line">    // 如果定义了seconds, 让该进程自己退出， 即优雅推出</span><br><span class="line">    // 2. Wait for the process to exit on its own</span><br><span class="line">	ctx := context.Background()</span><br><span class="line">	if seconds &gt;= 0 &#123;</span><br><span class="line">		var cancel context.CancelFunc</span><br><span class="line">		ctx, cancel = context.WithTimeout(ctx, time.Duration(seconds)*time.Second)</span><br><span class="line">		defer cancel()</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	// 等待进程结束, 总是会有优雅停止的时间</span><br><span class="line">	// 如果seconds内结束了，status.Err()是nil, 直接返回，此时不会再发送SIGKILL， </span><br><span class="line">	// 若超时还没有结束，status.Err()非nil, 则继续发送SIGKILL</span><br><span class="line">	if status := &lt;-container.Wait(ctx, containerpkg.WaitConditionNotRunning); status.Err() != nil &#123;</span><br><span class="line">	    // SIGTERM 有错误，则发送SIGKILL   </span><br><span class="line">		// 3. If it doesn&#x27;t, then send SIGKILL</span><br><span class="line">		if err := daemon.Kill(container); err != nil &#123;</span><br><span class="line">		    // 阻塞在这里，知道拿到容器在收到SIGKILL后的状态</span><br><span class="line">			&lt;-container.Wait(context.Background(), containerpkg.WaitConditionNotRunning)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">func (daemon *Daemon) kill(c *containerpkg.Container, sig int) error &#123;</span><br><span class="line">	return daemon.containerd.SignalProcess(context.Background(), c.ID, libcontainerdtypes.InitProcessName, sig)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>如果上层seconds设置太长会导致优雅等待时间太久么？不会，因为阻塞channel有两个输入，一个是有timeout的ctx， 另一个是容器的退出状态，一旦容器退出（成功or失败）都会写入channel.</p>
+</blockquote>
+<p>在杀死容器时，都是调用该方法，向<code>containerd</code>中的Init进程发送信号。</p>
+<h2 id="为什么在停止一个容器时，init-进程收到-SIGTERM-信号，而其他进程却会收到-SIGKILL-信号呢？"><a href="#为什么在停止一个容器时，init-进程收到-SIGTERM-信号，而其他进程却会收到-SIGKILL-信号呢？" class="headerlink" title="为什么在停止一个容器时，init 进程收到 SIGTERM 信号，而其他进程却会收到 SIGKILL 信号呢？"></a>为什么在停止一个容器时，init 进程收到 SIGTERM 信号，而其他进程却会收到 SIGKILL 信号呢？</h2><p>init收到SIGTERM我们在前面已经分析过，即containerd对initProcess发送SIGTERM，那容器中其他进程为什么会收到SIGKILL呢？</p>
+<p>当容器中 <code>init</code> 进程收到 <code>SIGTERM</code> 信号并且使进程退出，内核对处理进程退出的入口点就是 <code>do_exit()</code> 函数，<code>do_exit()</code> 函数中会释放进程的相关资源，比如内存，文件句 柄，信号量等等。<br>做完这些工作之后，它会调用一个 <code>exit_notify()</code> 函数，用来通知和这个进程相关的父子进程等。<br>对于容器来说，还要考虑 Pid Namespace 里的其他进程。调用的是 <code>zap_pid_ns_processes</code>() ,这个函数中，如果是处于退出状态的 <code>init</code> 进程， 它会向 <code>Namespace</code> 中的其他进程都发送一个 <code>SIGKILL</code> 信号。</p>
+<p><code>ns</code>中进程的处理，适合容器场景</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">void zap_pid_ns_processes(struct pid_namespace *pid_ns)</span><br><span class="line">&#123;</span><br><span class="line">    /* Don&#x27;t allow any more processes into the pid namespace */</span><br><span class="line">	disable_pid_allocation(pid_ns);</span><br><span class="line">	</span><br><span class="line">	// 向ns中其他进程发送SIGKILL</span><br><span class="line">	idr_for_each_entry_continue(&amp;pid_ns-&gt;idr, pid, nr) &#123;</span><br><span class="line">		task = pid_task(pid, PIDTYPE_PID);</span><br><span class="line">		if (task &amp;&amp; !__fatal_signal_pending(task))</span><br><span class="line">			group_send_sig_info(SIGKILL, SEND_SIG_PRIV, task, PIDTYPE_MAX);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>整个流程如下图，init process在退出自身的同时，SIGKILL方式通知它的child process<br><img src="/2023/12/01/%E5%81%9C%E6%AD%A2%E5%AE%B9%E5%99%A8%E6%97%B6%E8%BF%9B%E7%A8%8B%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86/exit_init_child_process.png" alt="image.png"></p>
+<p>如何让其他<code>child process</code>也收到<code>SIGTERM,</code> 以实现优雅下线呢？</p>
+<ol>
+<li>容器的应用程序作为<code>init</code>进程启动， 这涉及 <code>Dockerfile</code> 的 <code>ENTRYPOINT</code> 的两种写法，即 <code>exec</code> 和 <code>shell</code>，区别在于：</li>
+</ol>
+<ul>
+<li><code>exec</code> 形式的命令会使用 <code>PID 1</code> 的进程；如果是需要准备工作再启动进程，编写一个<code>entrypoint.sh</code><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh</span><br><span class="line">echo &quot;prepare...&quot;</span><br><span class="line">exec java -jar app.jar</span><br></pre></td></tr></table></figure>
+exec 命令的作用时使用新的进程替代原有的进程，并保持 PID 不变， 用exec后面的cmd代替了<code>entrypoint.sh</code></li>
+<li>shell 形式的命令会被执行为 &#x2F;bin&#x2F;sh -c ，启动bash进程，不会执行在 PID 1 上，也就不会收到 signal</li>
+</ul>
+<h2 id="docker-是如何创建容器的-PID-为-1-的进程"><a href="#docker-是如何创建容器的-PID-为-1-的进程" class="headerlink" title="docker 是如何创建容器的 PID 为 1 的进程?"></a>docker 是如何创建容器的 PID 为 1 的进程?</h2><p>docker 的 namespace 机制, docker 会在new ns里运行容器。</p>
+<p>Linux侧创建新的进程 <code>clone()</code>。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// on host</span><br><span class="line">int pid = clone(main_function, stack_size, SIGCHLD, NULL);</span><br><span class="line"></span><br><span class="line">// in docker </span><br><span class="line">int pid = clone(main_function, stack_size, CLONE_NEWPID | SIGCHLD, NULL);</span><br></pre></td></tr></table></figure>
+<p>多指定 <code>CLONE_NEWPID</code> 参数, 新创建的这个进程将会看到一个全新的进程空间，在这个进程空间里，它的 PID 是 1</p>
+<h2 id="为什么我在容器中不能-kill-1-号进程"><a href="#为什么我在容器中不能-kill-1-号进程" class="headerlink" title="为什么我在容器中不能 kill 1 号进程?"></a>为什么我在容器中不能 kill 1 号进程?</h2><p>想要知道 init 进程为什么收到或者收不到信号，就要去看 <code>sig_task_ignored()</code>的实现</p>
+<p><img src="/2023/12/01/%E5%81%9C%E6%AD%A2%E5%AE%B9%E5%99%A8%E6%97%B6%E8%BF%9B%E7%A8%8B%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86/sig_task_ignored.png" alt="image.png"></p>
+<p>问题和第二个if语句有关，一旦这三个子条件都被满足，那么信号就不会发送给进程, 也就不会处理了。</p>
+<ul>
+<li><code>!(force &amp;&amp; sig_kernel_only(sig))</code>:如果是同一个Namespace发出的信号，值为0。所以这个条件总是满足。</li>
+<li><code>handler == SIG_DFL</code>：判断信号的handler是否为SIG_DFL(default handler)。SIGKILL不允许捕获，它的handler一直是SIG_DFL，该条件总是满足（提前return 不会发给进程处理）。SIGTERM可捕获，不一定满足(signal会发给进程)</li>
+<li><code>t-&gt;signal-&gt;flags &amp; SIGNAL_UNKILLABLE</code>：进程必须是GINAL_UNKILLABLE的，在每个namespace的init进程建立时就会打上这个标签。(对于init 总是满足)</li>
+</ul>
+<p>**可以看出最关键的一点就是 handler &#x3D;&#x3D; SIG_DFL 。Linux 内核针对每个 Namespace 里的 init 进程，把只有 default handler 的信号都给忽略了。 **</p>
+<p>也就是说，如果定义了自定义的handler（SIGKILL不能被自定义）, 则信号会发给进程</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">### golang init </span><br><span class="line"># cat /proc/1/status | grep -i </span><br><span class="line">SigCgt SigCgt: fffffffe7fc1feff </span><br><span class="line"></span><br><span class="line">### C init </span><br><span class="line"># cat /proc/1/status | grep -i SigCgt </span><br><span class="line">SigCgt: 0000000000000000</span><br><span class="line"></span><br><span class="line">### Bash init </span><br><span class="line"># cat /proc/1/status | grep -i SigCgt </span><br><span class="line">SigCgt: 0000000000010002</span><br></pre></td></tr></table></figure>
+<p>在 <code>/proc/[PID]/status</code>文件中，<code>SigCgt</code> 表示 “Signal Catched”，它是进程当前捕获（catch）信号的位掩码。这个位掩码指示了哪些信号已经被该进程设置为自定义的信号处理程序，而不是使用默认的处理程序。</p>
+<p>对于init是golang、c、bash程序，应用程序注册的catch信号不</p>
+<ul>
+<li>对于SIGKILL是无法屏蔽的，所以三种app都会忽略，所以在容器里任何类型的应用都不能杀死init, 这符合逻辑，因为admin通过client拉起容器则由admin通过client杀死容器，岂能由用户通过SIGKILL杀死容器。</li>
+<li>对于C程序，全部是default handler。则屏蔽所有信号。用C开发的程序偏底层，不允许用户随意发信号。</li>
+<li>对于bash程序，注册了两个handler( SIGINT(bit2) 和 SIGCHLD(bit17)), 没有注册SIGTERM, 所以会忽略SIGTERM信号。kill也就无法杀死进程。 SIGCHLD信号不能忽略, SIGINT对应ctrl+c的软终端，也不能屏蔽该信号。</li>
+<li>对于go程序，竟然注册了这么多handler（注册的就要放行）, 这里面就放行了SIGTERM，所以kill可以杀死go程序。</li>
+</ul>
+<p>允许用户注册的<code>handler</code>，就要保证<code>handler</code>信号的执行，内核不可以屏蔽。不允许注册的<code>handler</code>（默认的信号）则屏蔽信号，保证容器环境的稳定性。</p>
+<p><code>kubectl/docker exec  -it container sh</code></p>
+<p>首先要保证容器是持久运行的，然后我们登陆容器打开一个新的<code>shell/bash</code>, 同时也可以看到本次shell执行的是什么命令。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sh-4.4# ps -ef</span><br><span class="line">UID          PID    PPID  C STIME TTY          TIME CMD</span><br><span class="line">root           1       0  0 02:05 ?        00:00:00 /bin/bash -c sleep 10; touch /tmp/healthy; sleep 30000</span><br><span class="line">root          19       0  0 05:54 pts/0    00:00:00 sh</span><br><span class="line">root          25      19  0 05:54 pts/0    00:00:00 ps -ef</span><br><span class="line"></span><br><span class="line">sh-4.4# kill 1 // bash 杀不死</span><br><span class="line"></span><br><span class="line">// bash init</span><br><span class="line">sh-4.4# cat /proc/1/status</span><br><span class="line">SigCgt:	0000000000010002</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"># golang init</span><br><span class="line"># cat /proc/1/status</span><br><span class="line">SigCgt:	fffffffdffc1feff</span><br><span class="line"></span><br><span class="line">sh-4.4# ps -ef</span><br><span class="line">UID        PID  PPID  C STIME TTY          TIME CMD</span><br><span class="line">root         1     0  0 Oct17 ?        00:10:54 /usr/local/bin/cephcsi --nodeid=xiamu-test-master-1 --type=cephfs --control</span><br><span class="line">root        40     0  0 06:28 pts/2    00:00:00 sh</span><br><span class="line">root        50    40  0 06:29 pts/2    00:00:00 ps -ef</span><br><span class="line"></span><br><span class="line">sh-4.4# kill -9 1   // SIGKILL 真杀不死</span><br><span class="line"></span><br><span class="line">sh-4.4# kill 1</span><br><span class="line">sh-4.4# command terminated with exit code 137  // SIGTERM真杀死了</span><br></pre></td></tr></table></figure>
+
+<p>当pod中init进程退出后的变化</p>
+<p>describe pod 看到的变化</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">最初</span><br><span class="line">    State:          Running</span><br><span class="line">      Started:      Fri, 24 Nov 2023 14:30:27 +0800</span><br><span class="line">    Ready:          True</span><br><span class="line">    Restart Count:  2</span><br><span class="line">    </span><br><span class="line">kill掉后立刻拉起来    </span><br><span class="line">    State:          Running</span><br><span class="line">      Started:      Fri, 24 Nov 2023 14:34:11 +0800</span><br><span class="line">    Last State:     Terminated</span><br><span class="line">      Reason:       Error</span><br><span class="line">      Exit Code:    2</span><br><span class="line">      Started:      Fri, 24 Nov 2023 14:30:27 +0800</span><br><span class="line">      Finished:     Fri, 24 Nov 2023 14:33:51 +0800</span><br><span class="line">    Ready:          True</span><br><span class="line">    Restart Count:  3    // restart count 增加了1</span><br></pre></td></tr></table></figure>
+<p>get pod 看到restart count 增加了1</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">csi-cephfsplugin-provisioner-559dbc494f-pwtjf   5/5     Running            9884       92d</span><br><span class="line">csi-cephfsplugin-provisioner-559dbc494f-pwtjf   5/5     Running            9885       92d</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h2><ol>
+<li>在杀死容器时，host侧为什么先发送<code>SIGTERM</code>不行再发<code>SIGKILL</code>呢，因为<code>SIGTERM</code>只能杀死容器里的<code>go app</code>. 对于<code>C/bash app</code>是杀不死的。而<code>SIGKILl</code>时可以杀死所有类型的APP.（在容器里给pid 1手动发SIGKILL是杀不死的）</li>
+<li>那为什么不一次性发<code>SIGKILL</code>呢？因为太暴力，go程序运行注册SIGTERM handler, 也就是捕获到该信号，在handler中做清理操作后自己退出。SIGKILL太暴力，可能导致app使用的资源泄漏。</li>
+<li>容器侧<code>kill -9</code>是杀不死<code>pid 1</code>进程的，因为被内核<code>ignored</code>。对于<code>go app</code>，<code>kill</code>可以杀死</li>
+<li>在host侧，找到容器里的进程， <code>SIGTERM</code>是可以杀死的</li>
+</ol>
+<h2 id="REF"><a href="#REF" class="headerlink" title="REF"></a>REF</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/7268667738910244919">https://juejin.cn/post/7268667738910244919</a></li>
+<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/7268594966556344381">https://juejin.cn/post/7268594966556344381</a></li>
+</ol>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                
+                
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/signal/"># signal</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2023/11/01/kubelet-node%E8%B5%84%E6%BA%90%E4%B8%8A%E6%8A%A5-1/">kubelet node资源上报-1</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Mingeer | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>
