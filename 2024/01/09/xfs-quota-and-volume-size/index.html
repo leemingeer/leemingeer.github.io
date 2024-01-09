@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta name="author" content="Mingeer">
+
+
+
+
+
+<title>xfs quota and volume size | Mingeer</title>
+
+
+
+    <link rel="icon" href="/favicon.ico">
+
+
+
+
+    <!-- stylesheets list from _config.yml -->
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+
+
+
+    <!-- scripts list from _config.yml -->
+    
+    <script src="/js/script.js"></script>
+    
+    <script src="/js/tocbot.min.js"></script>
+    
+
+
+
+    
+    
+        
+    
+
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+    <script>
+        // this function is used to check current theme before page loaded.
+        (() => {
+            const currentTheme = window.localStorage && window.localStorage.getItem('theme') || '';
+            const isDark = currentTheme === 'dark';
+            const pagebody = document.getElementsByTagName('body')[0]
+            if (isDark) {
+                pagebody.classList.add('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Dark"
+            } else {
+                pagebody.classList.remove('dark-theme');
+                // mobile
+                document.getElementById("mobile-toggle-theme").innerText = "· Light"
+            }
+        })();
+    </script>
+
+    <div class="wrapper">
+        <header>
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-header header-logo"><a href="/">Ming&#39;s Time</a></div>
+            <div class="menu navbar-right">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+                <input id="switch_default" type="checkbox" class="switch_default">
+                <label for="switch_default" class="toggleBtn"></label>
+            </div>
+        </div>
+    </nav>
+
+    
+    <nav class="navbar-mobile" id="nav-mobile">
+        <div class="container">
+            <div class="navbar-header">
+                <div>
+                    <a href="/">Ming&#39;s Time</a><a id="mobile-toggle-theme">·&nbsp;Light</a>
+                </div>
+                <div class="menu-toggle" onclick="mobileBtn()">&#9776; Menu</div>
+            </div>
+            <div class="menu" id="mobile-menu">
+                
+                    <a class="menu-item" href="/archives">Posts</a>
+                
+                    <a class="menu-item" href="/category">Categories</a>
+                
+                    <a class="menu-item" href="/tag">Tags</a>
+                
+                    <a class="menu-item" href="/about">About</a>
+                
+            </div>
+        </div>
+    </nav>
+
+</header>
+<script>
+    var mobileBtn = function f() {
+        var toggleMenu = document.getElementsByClassName("menu-toggle")[0];
+        var mobileMenu = document.getElementById("mobile-menu");
+        if(toggleMenu.classList.contains("active")){
+           toggleMenu.classList.remove("active")
+            mobileMenu.classList.remove("active")
+        }else{
+            toggleMenu.classList.add("active")
+            mobileMenu.classList.add("active")
+        }
+    }
+</script>
+            <div class="main">
+                <div class="container">
+    
+    
+        <div class="post-toc">
+    <div class="tocbot-list">
+    </div>
+    <div class="tocbot-list-menu">
+        <a class="tocbot-toc-expand" onclick="expand_toc()">Expand all</a>
+        <a onclick="go_top()">Back to top</a>
+        <a onclick="go_bottom()">Go to bottom</a>
+    </div>
+</div>
+
+<script>
+    var tocbot_timer;
+    var DEPTH_MAX = 6; // 为 6 时展开所有
+    var tocbot_default_config = {
+        tocSelector: '.tocbot-list',
+        contentSelector: '.post-content',
+        headingSelector: 'h1, h2, h3, h4, h5',
+        orderedList: false,
+        scrollSmooth: true,
+        onClick: extend_click,
+    };
+
+    function extend_click() {
+        clearTimeout(tocbot_timer);
+        tocbot_timer = setTimeout(function() {
+            tocbot.refresh(obj_merge(tocbot_default_config, {
+                hasInnerContainers: true
+            }));
+        }, 420); // 这个值是由 tocbot 源码里定义的 scrollSmoothDuration 得来的
+    }
+
+    document.ready(function() {
+        tocbot.init(obj_merge(tocbot_default_config, {
+            collapseDepth: 1
+        }));
+    });
+
+    function expand_toc() {
+        var b = document.querySelector('.tocbot-toc-expand');
+        var expanded = b.getAttribute('data-expanded');
+        expanded ? b.removeAttribute('data-expanded') : b.setAttribute('data-expanded', true);
+        tocbot.refresh(obj_merge(tocbot_default_config, {
+            collapseDepth: expanded ? 1 : DEPTH_MAX
+        }));
+        b.innerText = expanded ? 'Expand all' : 'Collapse all';
+    }
+
+    function go_top() {
+        window.scrollTo(0, 0);
+    }
+
+    function go_bottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function obj_merge(target, source) {
+        for (var item in source) {
+            if (source.hasOwnProperty(item)) {
+                target[item] = source[item];
+            }
+        }
+        return target;
+    }
+</script>
+    
+
+    
+    <article class="post-wrap">
+        <header class="post-header">
+            <h1 class="post-title">xfs quota and volume size</h1>
+            
+                <div class="post-meta">
+                    
+                        Author: <a itemprop="author" rel="author" href="/">Mingeer</a>
+                    
+
+                    
+                        <span class="post-time">
+                        Date: <a href="#">January 9, 2024&nbsp;&nbsp;17:56:34</a>
+                        </span>
+                    
+                    
+                        <span class="post-category">
+                    Category:
+                            
+                                <a href="/categories/kubernetes/">kubernetes</a>
+                            
+                        </span>
+                    
+                </div>
+            
+        </header>
+
+        <div class="post-content">
+            <h2 id="xfs-quota"><a href="#xfs-quota" class="headerlink" title="xfs_quota"></a><code>xfs_quota</code></h2><p><code>xfs_quota</code> 由 <code>xfsprogs</code> 提供，安装命令：<code>yum install xfsprogs -y</code></p>
+<ul>
+<li>类型：磁盘容量、文件数（Inode）</li>
+<li>方式：软限制、硬限制。硬限大于等于软限制，否者软限制失效<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xfs_quota -x -c &#x27;limit [-ug] bsoft=N bhard=N isoft=N ihard=N &lt;name&gt;&#x27; &lt;mount-point&gt;</span><br></pre></td></tr></table></figure>
+说明：</li>
+<li>-x 专家模式，允许对配额系统进行修改</li>
+<li>-c 子命令选项，依赖专家模式</li>
+<li>子命令：<ul>
+<li>df -b (block) -i (inode) -h</li>
+<li>timer 宽限时间</li>
+<li>limit<ul>
+<li>-u：对用户限制</li>
+<li>-g：对组限制</li>
+<li>bsoft：磁盘容量软限制</li>
+<li>bhard：磁盘容量硬限制</li>
+<li>isoft：文件数量软限制</li>
+<li>ihard：文件数量硬限制</li>
+</ul>
+</li>
+<li>report 列出quota项目<ul>
+<li>-u：对用户查看</li>
+<li>-g：对组查看</li>
+<li>-a：查看所有可用分区的配额使用报告</li>
+<li>-b：查看磁盘容量</li>
+<li>-i：查看文件数</li>
+</ul>
+</li>
+<li>print 当前系统参数</li>
+<li>state 列出当前系统信息和相关的启动项<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">xfs_quota -x -c &quot;timer [-ug] [-bir] Ndays&quot;</span><br><span class="line">xfs_quota -x -c &#x27;df&#x27;</span><br><span class="line">xfs_quota -x -c &#x27;df -b&#x27;</span><br><span class="line">xfs_quota -x -c &#x27;df -b -i&#x27;</span><br><span class="line">xfs_quota -x -c &#x27;df -b -i -h&#x27;</span><br><span class="line">xfs_quota -x -c &#x27;print&#x27;</span><br><span class="line">xfs_quota -x -c &#x27;report&#x27;</span><br><span class="line">xfs_quota -x -c &#x27;report -ugr&#x27; &lt;mount-point&gt;  # user/group/project</span><br><span class="line">xfs_quota -x -c &#x27;report -abi&#x27; &lt;mount-point&gt;</span><br><span class="line">xfs_quota -x -c &#x27;state&#x27;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<h2 id="os设置配额"><a href="#os设置配额" class="headerlink" title="os设置配额"></a>os设置配额</h2><ol>
+<li>创建用户组及用户<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"># cat myquota.sh</span><br><span class="line">#!/bin/bash</span><br><span class="line">groupadd myquotagrp</span><br><span class="line">for username in myquota1 myquota2 myquota3 myquota4 myquota5</span><br><span class="line">do</span><br><span class="line">  useradd -g myquotagrp $username</span><br><span class="line">  echo &quot;$username:password&quot; | chpasswd</span><br><span class="line">done</span><br><span class="line"></span><br><span class="line">mkdir /home/ruike/quota_test_dir</span><br><span class="line">chgrp myquotagrp /home/ruike/quota_test_dir</span><br><span class="line">chmod 2770 /home/ruike/quota_test_dir</span><br><span class="line">   </span><br><span class="line">查看</span><br><span class="line">drwxrws---  2 root  myquotagrp         6 Dec 27 16:12 quota_test_dir/</span><br><span class="line"></span><br><span class="line">所属myquotagrp组，否则切换到不同用户时，没有权限写入</span><br></pre></td></tr></table></figure></li>
+<li>查看挂载目录状况<br>注意： <code>xfs, usrquota,grpquota</code><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># mount | grep quota_test_dir</span><br><span class="line">/dev/mapper/ubuntu--vg-docker--lv--ext4 on /home/ruike/quota_test_dir type xfs (rw,relatime,attr2,inode64,logbufs=8,logbsize=32k,usrquota,grpquota)</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="quota限制-for-user-and-group"><a href="#quota限制-for-user-and-group" class="headerlink" title="quota限制 for user and group"></a>quota限制 for user and group</h3><p>要求: 5个用户共属一组, 每个用户250&#x2F;300M的容量限制, 组总容量950M&#x2F;1G容量, grace time 14天</p>
+<ol>
+<li><p>对用户进行限制</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">xfs_quota  -xc &#x27;limit -u bsoft=250M bhard=300M myquota1&#x27; /home/ruike/quota_test_dir/</span><br><span class="line">xfs_quota  -xc &#x27;limit -u bsoft=250M bhard=300M myquota2&#x27; /home/ruike/quota_test_dir/</span><br><span class="line">xfs_quota  -xc &#x27;limit -u bsoft=250M bhard=300M myquota3&#x27; /home/ruike/quota_test_dir/</span><br><span class="line">xfs_quota  -xc &#x27;limit -u bsoft=250M bhard=300M myquota4&#x27; /home/ruike/quota_test_dir/</span><br><span class="line">xfs_quota  -xc &#x27;limit -u bsoft=250M bhard=300M myquota5&#x27; /home/ruike/quota_test_dir/</span><br><span class="line"></span><br><span class="line"># xfs_quota -xc &#x27;report -ubih &#x27;</span><br><span class="line">User quota on /home/ruike/quota_test_dir (/dev/mapper/ubuntu--vg-docker--lv--ext4)</span><br><span class="line">                        Blocks                            Inodes</span><br><span class="line">User ID      Used   Soft   Hard Warn/Grace     Used   Soft   Hard Warn/Grace</span><br><span class="line">---------- --------------------------------- ---------------------------------</span><br><span class="line">root            0      0      0  00 [------]      3      0      0  00 [------]</span><br><span class="line">myquota1        0   250M   300M  00 [------]      0      0      0  00 [------]</span><br><span class="line">myquota2        0   250M   300M  00 [------]      0      0      0  00 [------]</span><br><span class="line">myquota3        0   250M   300M  00 [------]      0      0      0  00 [------]</span><br><span class="line">myquota4        0   250M   300M  00 [------]      0      0      0  00 [------]</span><br><span class="line">myquota5        0   250M   300M  00 [------]      0      0      0  00 [------]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>对组进行限制</p>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># xfs_quota -xc &#x27;limit -g bsoft=950M bhard=1G myquotagrp&#x27; /home/ruike/quota_test_dir/</span><br><span class="line"></span><br><span class="line"># xfs_quota -xc &#x27;report -gibh&#x27;</span><br><span class="line">Group quota on /home/ruike/quota_test_dir (/dev/mapper/ubuntu--vg-docker--lv--ext4)</span><br><span class="line">                        Blocks                            Inodes</span><br><span class="line">Group ID     Used   Soft   Hard Warn/Grace     Used   Soft   Hard Warn/Grace</span><br><span class="line">---------- --------------------------------- ---------------------------------</span><br><span class="line">root            0      0      0  00 [------]      3      0      0  00 [------]</span><br><span class="line">myquotagrp      0   950M     1G  00 [------]      0      0      0  00 [------]</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>设置grace time<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"># xfs_quota -xc &#x27;timer -b -u 14days&#x27; /home/ruike/quota_test_dir/</span><br><span class="line"># xfs_quota -xc &#x27;timer -b -g 14days&#x27; /home/ruike/quota_test_dir/</span><br><span class="line"></span><br><span class="line"># xfs_quota -xc state</span><br><span class="line">User quota state on /home/ruike/quota_test_dir (/dev/mapper/ubuntu--vg-docker--lv--ext4)</span><br><span class="line">  Accounting: ON</span><br><span class="line">  Enforcement: ON</span><br><span class="line">  Inode: #131 (2 blocks, 2 extents)</span><br><span class="line">Group quota state on /home/ruike/quota_test_dir (/dev/mapper/ubuntu--vg-docker--lv--ext4)</span><br><span class="line">  Accounting: ON</span><br><span class="line">  Enforcement: ON</span><br><span class="line">  Inode: #132 (2 blocks, 2 extents)</span><br><span class="line">Project quota state on /home/ruike/quota_test_dir (/dev/mapper/ubuntu--vg-docker--lv--ext4)</span><br><span class="line">  Accounting: OFF</span><br><span class="line">  Enforcement: OFF</span><br><span class="line">  Inode: N/A</span><br><span class="line">Blocks grace time: [14 days]</span><br><span class="line">Inodes grace time: [7 days]</span><br><span class="line">Realtime Blocks grace time: [7 days]</span><br></pre></td></tr></table></figure></li>
+<li>测试<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">root@ubu2004:/home/ruike/quota_test_dir#  su myquota1</span><br><span class="line">#  dd if=/dev/zero  of=quota1.img bs=1M count=260</span><br><span class="line">切换到root 用户</span><br><span class="line"></span><br><span class="line">root@ubu2004:/home/ruike/quota_test_dir#    su myquota2</span><br><span class="line"># dd if=/dev/zero  of=quota2.img bs=1M count=500</span><br><span class="line"></span><br><span class="line">切换到root 用户</span><br><span class="line">root@ubu2004:/home/ruike/quota_test_dir# ll</span><br><span class="line">-rw-r--r--  1 myquota1 myquotagrp 272629760 Jan  5 12:09 quota1.img</span><br><span class="line">-rw-r--r--  1 myquota2 myquotagrp 314572800 Jan  5 12:10 quota2.img</span><br><span class="line"></span><br><span class="line">root@ubu2004:/home/ruike/quota_test_dir# xfs_quota -xc &#x27;report -bihu&#x27;</span><br><span class="line">User quota on /home/ruike/quota_test_dir (/dev/mapper/ubuntu--vg-docker--lv--ext4)</span><br><span class="line">                        Blocks                            Inodes</span><br><span class="line">User ID      Used   Soft   Hard Warn/Grace     Used   Soft   Hard Warn/Grace</span><br><span class="line">---------- --------------------------------- ---------------------------------</span><br><span class="line">root            0      0      0  00 [0 days]      3      0      0  00 [------]</span><br><span class="line">myquota1     260M   250M   300M  00 [13 days]      1      0      0  00 [------]</span><br><span class="line">myquota2     300M   250M   300M  00 [13 days]      1      0      0  00 [------]</span><br><span class="line">myquota3        0   250M   300M  00 [------]      0      0      0  00 [------]</span><br><span class="line">myquota4        0   250M   300M  00 [------]      0      0      0  00 [------]</span><br><span class="line">myquota5        0   250M   300M  00 [------]      0      0      0  00 [------]</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>可以看到,<br><strong>quota1使用了260M, warn&#x2F;grace是13天, 13天后, 其hard会变为260m</strong><br><strong>quota2即使dd了500M, 这里也只用了300M</strong>   写超过的部分并不会hang住</p>
+<h3 id="针对目录设置quota"><a href="#针对目录设置quota" class="headerlink" title="针对目录设置quota"></a>针对目录设置quota</h3><p>更改项目, <code>prjquota</code>与<code>usr/grpquota</code>不能同时设置</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># cat /etc/fstab</span><br><span class="line">/dev/mapper/ubuntu--vg-docker--lv--ext4 /home/ruike/quota_test_dir/ xfs defaults,prjquota 0 0</span><br><span class="line"># umount /home/ruike/quota_test_dir/</span><br><span class="line"># mount -a</span><br><span class="line"></span><br><span class="line"># mount | grep prjquota</span><br><span class="line">/dev/mapper/ubuntu--vg-docker--lv--ext4 on /home/ruike/quota_test_dir type xfs (rw,relatime,attr2,inode64,logbufs=8,logbsize=32k,prjquota)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"># echo &#x27;11:/home/ruike/quota_test_dir&#x27; &gt;&gt; /etc/projects  //  指定专案识别码与目录的对应11是识别码, 可以随便取, 一定要放到etc下的这个文件里</span><br><span class="line"># echo &#x27;myquotaproject:11&#x27; &gt;&gt; /etc/projid # 规范专案名称与识别码的对应, 文件也是固定的</span><br><span class="line"></span><br><span class="line"># xfs_quota -xc &#x27;project -s myquotaproject&#x27; # 初始化专案名称</span><br><span class="line">Setting up project myquotaproject (path /home/ruike/quota_test_dir)...</span><br><span class="line">Processed 1 (/etc/projects and cmdline) paths for project myquotaproject with recursion depth infinite (-1).</span><br><span class="line"></span><br><span class="line"># xfs_quota -xc print</span><br><span class="line">Filesystem          Pathname</span><br><span class="line">/home/ruike/quota_test_dir /dev/mapper/ubuntu--vg-docker--lv--ext4 (pquota)</span><br><span class="line">/home/ruike/quota_test_dir /dev/mapper/ubuntu--vg-docker--lv--ext4 (project 11, myquotaproject)</span><br><span class="line"></span><br><span class="line">#设置限制</span><br><span class="line"># xfs_quota -xc &#x27;limit -p bsoft=450m bhard=500m myquotaproject&#x27; /home/ruike/quota_test_dir/</span><br><span class="line"></span><br><span class="line">查看</span><br><span class="line"># xfs_quota -xc &#x27;report -bih&#x27;</span><br><span class="line">Project quota on /home/ruike/quota_test_dir (/dev/mapper/ubuntu--vg-docker--lv--ext4)</span><br><span class="line">                        Blocks                            Inodes</span><br><span class="line">Project ID   Used   Soft   Hard Warn/Grace     Used   Soft   Hard Warn/Grace</span><br><span class="line">---------- --------------------------------- ---------------------------------</span><br><span class="line">#0              0      0      0  00 [------]      2      0      0  00 [------]</span><br><span class="line">myquotaproject      0   450M   500M  00 [------]      1      0      0  00 [------]</span><br></pre></td></tr></table></figure>
+<p>测试</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">root@ubu2004:~# fallocate -l 500M /home/ruike/quota_test_dir/500Mfile</span><br><span class="line">fallocate: fallocate failed: No space left on device</span><br><span class="line"></span><br><span class="line">root@ubu2004:~# fallocate -l 400M /home/ruike/quota_test_dir/400Mfile</span><br><span class="line">root@ubu2004:~# xfs_quota -xc &#x27;report -bih&#x27;</span><br><span class="line">Project quota on /home/ruike/quota_test_dir (/dev/mapper/ubuntu--vg-docker--lv--ext4)</span><br><span class="line">                        Blocks                            Inodes</span><br><span class="line">Project ID   Used   Soft   Hard Warn/Grace     Used   Soft   Hard Warn/Grace</span><br><span class="line">---------- --------------------------------- ---------------------------------</span><br><span class="line">#0              0      0      0  00 [------]      2      0      0  00 [------]</span><br><span class="line">myquotaproject   400M   450M   500M  00 [------]      3      0      0  00 [------]</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>额外指令</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">// enable/disable</span><br><span class="line">xfs_quota -x -c &quot;disable -up&quot; /home/ruike/quota_test_dir</span><br><span class="line">// off后要重新挂载才能进行quota操作</span><br><span class="line">xfs_quota -x -c &quot;off -up&quot; /home/ruike/quota_test_dir</span><br><span class="line">// 移除所有project</span><br><span class="line">xfs_quota -x -c &quot;remove -p&quot; /home/ruike/quota_test_dir</span><br></pre></td></tr></table></figure>
+
+<h2 id="docker-全局配额设置"><a href="#docker-全局配额设置" class="headerlink" title="docker 全局配额设置"></a>docker 全局配额设置</h2><p>开启容器的配额限制</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&quot;storage-driver&quot;: &quot;overlay2&quot;, // 使用哪个存储驱动</span><br><span class="line">&quot;storage-opts&quot;: [             // 驱动的其他option设置</span><br><span class="line">  &quot;overlay2.size=50M&quot;,</span><br><span class="line">  &quot;overlay2.override_kernel_check=true&quot;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>查看两个容器的都被限制住</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">root@ubu2004:~# docker exec -it test1 bash</span><br><span class="line">root@415bba651ed0:/# df -Th</span><br><span class="line">Filesystem                              Type     Size  Used Avail Use% Mounted on</span><br><span class="line">overlay                                 overlay   50M   20K   50M   1% /‘</span><br><span class="line">root@ubu2004:~# docker exec -it test2 bash</span><br><span class="line">root@415bba651ed0:/# df -Th</span><br><span class="line">Filesystem                              Type     Size  Used Avail Use% Mounted on</span><br><span class="line">overlay                                 overlay   50M   46M  5.0M  91% /</span><br></pre></td></tr></table></figure>
+<p>临时禁用配额限制</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># xfs_quota -x -c &quot;disable -up&quot; /home/ruike/quota_test_dir</span><br></pre></td></tr></table></figure>
+<p>此时进入两个容器, 可以看到限制被禁用了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># docker exec -it test2 bash</span><br><span class="line">root@e6fabc995b51:/# df -Th</span><br><span class="line">Filesystem                              Type     Size  Used Avail Use% Mounted on</span><br><span class="line">overlay                                 overlay   31G  533M   31G   2% /</span><br></pre></td></tr></table></figure>
+<p>所以<code>project</code>的含义是对不同的目录</p>
+<p>删除<code>Quota</code>限制</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">root@ubu2004:~# xfs_quota -x -c &quot;off -up&quot; /home/ruike/quota_test_dir</span><br><span class="line">root@ubu2004:~# xfs_quota -x -c &quot;remove -p&quot; /home/ruike/quota_test_dir</span><br><span class="line">// 查看不到配额了</span><br><span class="line">root@ubu2004:~# xfs_quota -x -c &quot;state&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>off后要重新挂载才能进行quota操作</p>
+<h3 id="容器粒度配额限制"><a href="#容器粒度配额限制" class="headerlink" title="容器粒度配额限制"></a>容器粒度配额限制</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># docker run -itd --storage-opt size=30M --name ruike2 nginx</span><br><span class="line">root@ubu2004:~# docker exec -it ruike2 bash</span><br><span class="line">root@3b96569f34c1:/# df -Th</span><br><span class="line">Filesystem                              Type     Size  Used Avail Use% Mounted on</span><br><span class="line">overlay                                 overlay   30M   16K   30M   1% /</span><br><span class="line"></span><br><span class="line"># docker run -itd --storage-opt size=20M --name ruike1 nginx</span><br><span class="line"># docker exec -it ruike1 bash</span><br><span class="line">root@764b4db8ed48:/# df -Th</span><br><span class="line">Filesystem                              Type     Size  Used Avail Use% Mounted on</span><br><span class="line">overlay                                 overlay   20M   16K   20M   1% /</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">root@ubu2004:~# xfs_quota -xc &#x27;report -bih&#x27;</span><br><span class="line">Project quota on /home/ruike/quota_test_dir (/dev/mapper/ubuntu--vg-docker--lv--ext4)</span><br><span class="line">                        Blocks                            Inodes</span><br><span class="line">Project ID   Used   Soft   Hard Warn/Grace     Used   Soft   Hard Warn/Grace</span><br><span class="line">#17            8K    50M    50M  00 [------]     17      0      0  00 [------]</span><br><span class="line">#18           20K    50M    50M  00 [------]     23      0      0  00 [------]</span><br><span class="line">#19            8K    20M    20M  00 [------]     17      0      0  00 [------]</span><br><span class="line">#20           20K    20M    20M  00 [------]     23      0      0  00 [------]</span><br><span class="line">#21            8K    30M    30M  00 [------]     17      0      0  00 [------]</span><br><span class="line">#22           16K    30M    30M  00 [------]     21      0      0  00 [------]</span><br></pre></td></tr></table></figure>
+<p>每个容器是两条project限制, <code>projectID</code>是怎么关联到哪个容器的？</p>
+<h3 id="docker-配额实现"><a href="#docker-配额实现" class="headerlink" title="docker 配额实现"></a>docker 配额实现</h3><p>docker创建容器可设置<code>--storage-driver=xxx --storage-opt size=yyy</code>, 此配置优先级高于全局的配置</p>
+<p><code>daemon/create.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">func (daemon *Daemon) create(opts createOpts) (retC *container.Container, retErr error) &#123;</span><br><span class="line">    // 调用imageService 创建layer</span><br><span class="line">	rwLayer, err := daemon.imageService.CreateLayer(ctr, setupInitLayer(daemon.idMapping))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (i *ImageService) CreateLayer(container *container.Container, initFunc layer.MountInit) (layer.RWLayer, error) &#123;</span><br><span class="line">	var layerID layer.ChainID</span><br><span class="line">    // 将容器使用的镜像根文件系统的chainID作为layerID</span><br><span class="line">	if container.ImageID != &quot;&quot; &#123;</span><br><span class="line">		img, err := i.imageStore.Get(container.ImageID)</span><br><span class="line">		if err != nil &#123;</span><br><span class="line">			return nil, err</span><br><span class="line">		&#125;</span><br><span class="line">		layerID = img.RootFS.ChainID()</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (ls *layerStore) CreateRWLayer(name string, parent ChainID, opts *CreateRWLayerOpts) (_ RWLayer, err error) &#123;</span><br><span class="line">    // init 层</span><br><span class="line">	pid, err = ls.initMount(m.mountID, pid, mountLabel, initFunc, storageOpt)</span><br><span class="line">   </span><br><span class="line">    // 可读可写层</span><br><span class="line">	if err = ls.driver.CreateReadWrite(m.mountID, pid, createOpts); err != nil &#123;</span><br><span class="line">		return</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>github.com/docker/docker/layer/layer_store.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">func (ls *layerStore) initMount(graphID, parent, mountLabel string, initFunc MountInit, storageOpt map[string]string) (string, error) &#123;</span><br><span class="line">	// &lt;data-root&gt;/overlay/grapthID-init</span><br><span class="line">	initID := fmt.Sprintf(&quot;%s-init&quot;, graphID)</span><br><span class="line">	// 这一层也是可读可写层，只不过是特定的文件</span><br><span class="line">	if err := ls.driver.CreateReadWrite(initID, parent, createOpts); err != nil &#123;</span><br><span class="line">		return &quot;&quot;, err</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在创建容器可读可写层时，分成了两步</p>
+<ol>
+<li>创建init层，作为&#x2F;etc&#x2F;hosts， resolv.conf等的挂载层, <code>initiD: &lt;data-root&gt;/overlay/grapthID-init</code></li>
+<li>容器的可读可写层<br>最后调用的都是<code>ls.driver.CreateReadWrite()</code></li>
+</ol>
+<p>docker的storage driver 支持 overlay2,aufs,devicemapper,vfs,zfs等（<code>moby/daemon/graphdriver/</code>)下，这里选用创建的<code>overlay2</code><br><code>daemon/graphdriver/overlay2/overlay.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">func (d *Driver) CreateReadWrite(id, parent string, opts *graphdriver.CreateOpts) error &#123;</span><br><span class="line">    ...</span><br><span class="line">	if _, ok := opts.StorageOpt[&quot;size&quot;]; ok &amp;&amp; !projectQuotaSupported &#123;</span><br><span class="line">		return fmt.Errorf(&quot;--storage-opt is supported only for overlay over xfs with &#x27;pquota&#x27; mount option&quot;)</span><br><span class="line">	&#125;</span><br><span class="line">	return d.create(id, parent, opts)</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (d *Driver) create(id, parent string, opts *graphdriver.CreateOpts) (retErr error) &#123;</span><br><span class="line">    // &lt;data root&gt;/overlay2/&lt;RWlayerID&gt;</span><br><span class="line">	dir := d.dir(id)</span><br><span class="line">	</span><br><span class="line">	if opts != nil &amp;&amp; len(opts.StorageOpt) &gt; 0 &#123;</span><br><span class="line">		driver := &amp;Driver&#123;&#125;</span><br><span class="line">		if err := d.parseStorageOpt(opts.StorageOpt, driver); err != nil &#123;</span><br><span class="line">			return err</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		if driver.options.quota.Size &gt; 0 &#123;</span><br><span class="line">			// Set container disk quota limit</span><br><span class="line">			if err := d.quotaCtl.SetQuota(dir, driver.options.quota); err != nil &#123;</span><br><span class="line">				return err</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p><code>github.com/docker/docker/quota/projectquota.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">//	echo 999:/var/lib/docker/overlay2 &gt;&gt; /etc/projects</span><br><span class="line">//	echo docker:999 &gt;&gt; /etc/projid</span><br><span class="line">//	xfs_quota -x -c &#x27;project -s docker&#x27; /&lt;xfs mount point&gt;</span><br><span class="line"></span><br><span class="line">func (q *Control) SetQuota(targetPath string, quota Quota) error &#123;</span><br><span class="line">	//</span><br><span class="line">	log.G(context.TODO()).Debugf(&quot;SetQuota(%s, %d): projectID=%d&quot;, targetPath, quota.Size, projectID)</span><br><span class="line">	// 这里的backingFsBlockDev， 就是/var/lib/docker/overlay2 目录对应的后端块设备</span><br><span class="line">	return setProjectQuota(q.backingFsBlockDev, projectID, quota)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// setProjectQuota - set the quota for project id on xfs block device</span><br><span class="line">func setProjectQuota(backingFsBlockDev string, projectID uint32, quota Quota) error &#123;</span><br><span class="line">    // 调用C包实现设置</span><br><span class="line">	var d C.fs_disk_quota_t</span><br><span class="line">	d.d_version = C.FS_DQUOT_VERSION</span><br><span class="line">	d.d_id = C.__u32(projectID)</span><br><span class="line">	d.d_flags = C.XFS_PROJ_QUOTA</span><br><span class="line"></span><br><span class="line">	d.d_fieldmask = C.FS_DQ_BHARD | C.FS_DQ_BSOFT</span><br><span class="line">	d.d_blk_hardlimit = C.__u64(quota.Size / 512)</span><br><span class="line">	d.d_blk_softlimit = d.d_blk_hardlimit</span><br><span class="line"></span><br><span class="line">	cs := C.CString(backingFsBlockDev)</span><br><span class="line">	defer C.free(unsafe.Pointer(cs))</span><br><span class="line"></span><br><span class="line">	_, _, errno := unix.Syscall6(unix.SYS_QUOTACTL, C.Q_XSETPQLIM,</span><br><span class="line">		uintptr(unsafe.Pointer(cs)), uintptr(d.d_id),</span><br><span class="line">		uintptr(unsafe.Pointer(&amp;d)), 0, 0)</span><br><span class="line">	if errno != 0 &#123;</span><br><span class="line">		return errors.Wrapf(errno, &quot;failed to set quota limit for projid %d on %s&quot;,</span><br><span class="line">			projectID, backingFsBlockDev)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们可以上面的log查看到对应的打印 <code>journal -u docker | grep projectID | grep &lt;grapthID&gt;</code>, 以下是查看到的日志</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Jan 05 13:19:35 ubu2004 dockerd[176096]: time=&quot;2024-01-05T13:19:35.859782918Z&quot; level=debug msg=&quot;SetQuota(/home/ruike/quota_test_dir/overlay2/8568b8ee62483dee1f9aa1bb8165e5d5ba3c7b89a78f886a5d93ee9bc2f1c13f-init, 31457280): projectID=21&quot;</span><br><span class="line">Jan 05 13:19:35 ubu2004 dockerd[176096]: time=&quot;2024-01-05T13:19:35.871014600Z&quot; level=debug msg=&quot;SetQuota(/home/ruike/quota_test_dir/overlay2/8568b8ee62483dee1f9aa1bb8165e5d5ba3c7b89a78f886a5d93ee9bc2f1c13f, 31457280): projectID=22&quot;</span><br></pre></td></tr></table></figure>
+<p>每创建一个容器，docker会在container的可读可写层和init层两个目录设置<code>project quota</code><br><code>&lt;data-root&gt;/overlay2/&lt;grapthID&gt;</code>和 <code>&lt;data-root&gt;/overlay2/&lt;graphID&gt;-init</code></p>
+<h2 id="k8s-本地临时存储及弱配额实现"><a href="#k8s-本地临时存储及弱配额实现" class="headerlink" title="k8s 本地临时存储及弱配额实现"></a>k8s 本地临时存储及弱配额实现</h2><ol>
+<li>概况<br>ephemeral-storage 分成csi管理的临时卷 和 kubelet管理的local 临时卷<br>前者可以通过csi机制来设置容量，后者</li>
+</ol>
+<p><code>local ephemeral-storage</code> 可以由本地存储设备 或者 ram内存设备来提供。ram emptydir 虽然可以做临时存储（生命周期角度），但是不会统计到临时存储的磁盘（占用的内存）,<code>file emptyDir</code>会占用磁盘空间</p>
+<p>统计临时存储的使用量，有两种本地临时性存储的配置</p>
+<ul>
+<li>单一文件系统：所有临时存储都存放在同一个文件系统中</li>
+<li>双文件系统： 容器镜像和rootfs单独一个文件系统，前两种另一个文件系统</li>
+</ul>
+<p>分文件系统是因为利用文件系统统计临时存储的空间使用量</p>
+<blockquote>
+<p>kubelet 将仅统计临时存储的”根文件系统”。docker data root(&#x2F;var&#x2F;lib&#x2F;docker)必须和kubelet(&#x2F;var&#x2F;lib&#x2F;kubelet&#x2F;) 位于同一个分区才能统计临时存储。<br>临时存储容量会影响到pod调度，kubelet会统计当前节点的kubelet分区的可分配的磁盘资源，在创建Pod时会根据存储需求调度到满足存储的节点，当pod实际使用超过申请的临时存储会进行驱逐操作，避免耗尽节点上的存储空间&gt; kubectl describe node 可以看到节点临时存储的总容量</p>
+</blockquote>
+<ol start="2">
+<li>设置本地临时存储<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">resources:</span><br><span class="line">  requests:</span><br><span class="line">    ephemeral-storage: &quot;200Mi&quot;</span><br><span class="line">  limits:</span><br><span class="line">    ephemeral-storage: &quot;400Mi&quot;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>哪些数据会占用本地临时存储？ 一种3种</p>
+<ul>
+<li>容器日志（&#x2F;var&#x2F;log），写入容器 stdout, stderr 流,</li>
+<li>emptyDir volume数据（存放在&#x2F;var&#x2F;lib&#x2F;kubelet&#x2F;…&#x2F;volumes&#x2F;kubernetes.io~emptyDir&#x2F;…）, tmpfs类型因为使用内存，不统计到本地临时存储（<code>emptyDir:medium: &quot;Memory&quot;, sizeLimit: 500Mi</code>）</li>
+<li>镜像层和容器可写层（&#x2F;var&#x2F;lib&#x2F;docker）</li>
+</ul>
+<ol start="3">
+<li>如何度量 Pod 的存储用量?</li>
+</ol>
+<ul>
+<li>周期扫描上面三个路径</li>
+<li>项目配额（Project Quota，更优，更快）<ul>
+<li>目录下所创建的所有文件都属于该项目，内核只需要跟踪该项目中的文件所使用的存储块个数</li>
+</ul>
+</li>
+</ul>
+<p>k8s使用的<code>project quota IDs</code> 会注册在 <code>/etc/projects</code> 和 <code>/etc/projid</code> 文件中,</p>
+<p>3.1 如何开启项目配额上报使用容量</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. kubelet --feature-gates LocalStorageCapacityIsolationFSQuotaMonitoring=true, 默认false</span><br><span class="line">2. 临时存储文件系统是 xfs 且 with prjquota</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>项目配额可以帮你监视存储用量，但无法强制执行限制。</p>
+</blockquote>
+<p><code>pkg/volume/util/fsquota/quota_linux.go</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">func AssignQuota(m mount.Interface, path string, poduid types.UID, bytes *resource.Quantity) error &#123;</span><br><span class="line"></span><br><span class="line">	id, err := createProjectID(path, oid)</span><br><span class="line">	if err == nil &#123;</span><br><span class="line">	    // 当启用强制配额时，也会以禁用配额</span><br><span class="line">		if ibytes &gt; 0 &#123;</span><br><span class="line">			ibytes = -1</span><br><span class="line">		&#125;</span><br><span class="line">		if err = setQuotaOnDir(path, id, ibytes); err == nil &#123;</span><br><span class="line">			quotaPodMap[id] = poduid</span><br><span class="line">			quotaSizeMap[id] = ibytes</span><br><span class="line">			podQuotaMap[poduid] = id</span><br><span class="line">			dirQuotaMap[path] = id</span><br><span class="line">			dirPodMap[path] = poduid</span><br><span class="line">			podDirCountMap[poduid]++</span><br><span class="line">			klog.V(4).Infof(&quot;Assigning quota ID %d (%d) to %s&quot;, id, ibytes, path)</span><br><span class="line">			return nil</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>所以<code>emptyDir</code>是弱限制配额，不会强制限制写入，但是利用<code>prjQuota</code> 统计临时存储使用量，当超过阈值时，触发pod的驱逐，从而导致临时存储的数据全部丢失，驱逐后的pod不会超过临时了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">guarantee-gpu0-6c-6c5644c9cd-5n88n              1/1     Running            0          7s</span><br><span class="line">guarantee-gpu0-6c-6c5644c9cd-kbn25              0/1     Evicted            0          103m</span><br><span class="line"># kubectl describe pod guarantee-gpu0-6c-6c5644c9cd-kbn25  </span><br><span class="line">  Warning  Evicted  52s   kubelet  Pod ephemeral local storage usage exceeds the total limit of containers 100Mi.</span><br><span class="line">  Normal   Killing  52s   kubelet  Stopping container nginx-gpu0-6c</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>亲测，kubelet和docker data-root 必须同一个分区，否则不会触发eviction</p>
+</blockquote>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li><p>磁盘配额以及volume的大小或者k8s csi挂载的volume的大小，都是通过文件系统的<code>quota</code>功能实现的，这个大小是写在<code>host fs</code>中的，必须是操作系统做限制，否则上层岂不是一直写block了。</p>
+</li>
+<li><p><code>project quota</code>特性可以统计磁盘使用量，当超过阈值时写入数据hang住或者直接返回<code>No space left on device</code></p>
+</li>
+<li><p><code>project quota</code>实际限制的目录是<code>&lt;data-root&gt;/overlay2/&lt;grapthID&gt;</code> 和 <code>&lt;data-root&gt;/overlay2/&lt;graphID&gt;-init</code>， 只有这两个目录是可写的，该目录下的<code>lowerDir</code>可能有几个G且是只读的， 不在quota配额范围）,quota限制的是增量的数据，分成全局配额或者容器粒度的配额。</p>
+</li>
+<li><p>每一个容器对应一条project记录，开启限额, 每个容器&#x2F;project 互不影响</p>
+</li>
+<li><p>k8s empty 卷不支持强配额，而只是利用project quota 统计目录卷的存储容量（mount option 带了projQuota, 但是没有setQuota的数值，所以有一个间隙可以写入更多的数据，没在fs侧设置而是在k8s侧进行了数量控制，当超过则驱逐pod)</p>
+</li>
+<li><p>在容器中<code>df -Th</code>会读取<code>/sys/fs/</code>(共享host侧的)查看<code>container rootfs</code>的大小， 如果<code>grapthID的目录</code>设置了<code>quota</code>, 则显示的就是该<code>quota</code>, 如果没有配额, 显示的是<code>data root</code>所在分区，其实就是parent dir 限制了quota时， 其子dir也限制了大小，则优先使用子dir的quota, quota就是普通volume的size概念</p>
+</li>
+<li><p><code># xfs_quota -xc print</code> 及 <code>xfs_quota -xc &#39;report -bh&#39;</code> 限制节点所有挂在点的配额即<code>volume size</code></p>
+</li>
+<li><p><code>/etc/projects</code> 和 <code>/etc/projid</code>文件记录 <code>project</code> 信息</p>
+</li>
+</ol>
+<h2 id="REF"><a href="#REF" class="headerlink" title="REF"></a>REF</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://github.com/kubernetes/kubernetes/pull/66928">https://github.com/kubernetes/kubernetes/pull/66928</a></li>
+<li><a target="_blank" rel="noopener" href="https://hackmd.io/@2F6DeP2PT42wM_XKgXFfvw/HySYorxui#%E4%BD%BF%E7%94%A8-xfs-project-quota">https://hackmd.io/@2F6DeP2PT42wM_XKgXFfvw/HySYorxui#%E4%BD%BF%E7%94%A8-xfs-project-quota</a></li>
+</ol>
+
+        </div>
+
+        
+            <section class="post-copyright">
+                
+                
+                
+                
+
+            </section>
+        
+        <section class="post-tags">
+            <div>
+                <span>Tag(s):</span>
+                <span class="tag">
+                    
+                    
+                        <a href="/tags/quota/"># quota</a>
+                    
+                        <a href="/tags/volumeSize/"># volumeSize</a>
+                    
+                        
+                </span>
+            </div>
+            <div>
+                <a href="javascript:window.history.back();">back</a>
+                <span>· </span>
+                <a href="/">home</a>
+            </div>
+        </section>
+        <section class="post-nav">
+            
+            
+            <a class="next" rel="next" href="/2023/12/01/%E5%81%9C%E6%AD%A2%E5%AE%B9%E5%99%A8%E6%97%B6%E8%BF%9B%E7%A8%8B%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86/">停止容器时进程如何处理</a>
+            
+        </section>
+
+
+    </article>
+</div>
+
+            </div>
+            <footer id="footer" class="footer">
+    <div class="copyright">
+        <span>© Mingeer | Powered by <a href="https://hexo.io" target="_blank">Hexo</a> & <a href="https://github.com/Siricee/hexo-theme-Chic" target="_blank">Chic</a></span>
+    </div>
+</footer>
+
+    </div>
+</body>
+
+</html>
